@@ -16,3 +16,8 @@ export interface User extends Entity {
 }
 
 export type NewUser = Omit<User, 'id'>;
+
+export type LoginCredentials = {
+    email: string;
+    password: string;
+};

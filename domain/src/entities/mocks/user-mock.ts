@@ -28,31 +28,6 @@ export function resetExistingUsers() {
         }
     );
 }
-export function getInitialUsers(): User[] {
-    return [
-        {
-            id: 'user-1',
-            name: 'Alice Admin',
-            email: 'admin@email.com',
-            passwordHash: 'hashedAdmin',
-            role: UserRole.ADMIN
-        },
-        {
-            id: 'user-2',
-            name: 'Oscar Organizer',
-            email: 'organizer@email.com',
-            passwordHash: 'hashedOrganizer',
-            role: UserRole.ORGANIZER
-        },
-        {
-            id: 'user-3',
-            name: 'Peter Player',
-            email: 'player@email.com',
-            passwordHash: 'hashedPlayer',
-            role: UserRole.PLAYER
-        }
-    ]
-}
 
 const validUser = {
     name: 'Mock User',
@@ -72,6 +47,18 @@ export function userMock(opts?: User): User {
 export function newUserMock(opts?: Partial<User>): Omit<User, 'id'> {
     return {
         ...validUser,
+        ...opts,
+    };
+}
+
+// Login user credentials mock
+const validCredentialsMock = {
+    email: 'admin@email.com',
+    password: 'passAdmin',
+}
+export function loginCredentialsMock(opts?: Partial<{email: string; password: string}>): {email: string; password: string} {
+    return {
+        ...validCredentialsMock,
         ...opts,
     };
 }

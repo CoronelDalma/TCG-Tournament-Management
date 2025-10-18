@@ -8,7 +8,6 @@ beforeEach(() => {
 })
 
 describe('RegisterUser', async () => {
-    // TODO sacar de aca el mock del service
     const userService = userServiceMock;
 
     test('should register a new user successfully', async () => {

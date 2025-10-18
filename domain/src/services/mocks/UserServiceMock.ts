@@ -5,6 +5,8 @@ import { existingUsers } from '../../entities/mocks/user-mock';
 export const userServiceMock = {
         getByEmail: async (email: string) => {
             // Simulate fetching user by email
+            console.log('Mock getByEmail called with:', email);
+            console.log('Existing users:', existingUsers);
             return existingUsers.find(user => user.email === email) || null;
         },
         register: async (userData: NewUser) => {
