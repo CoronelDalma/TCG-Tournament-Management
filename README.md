@@ -25,6 +25,7 @@ Este proyecto es una aplicación fullstack para gestionar torneos de juegos de c
 - **Autenticación**: JWT
 - **Persistencia**: SQLite3 (puede escalar a PostgreSQL)
 - **Gestión de paquetes**: npm con workspaces
+- **Validaciones**: zod
 
 ## 📁 Estructura del proyecto
 

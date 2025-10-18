@@ -1,13 +1,14 @@
 import { NewUser } from "../../entities";
+import { RegisterUserService } from "../../services/User/RegisterUserService";
 import { UserService } from "../../services/User/UserService";
 
 interface RegisterUserData {
-    dependencies: { userService: UserService },
+    dependencies: { registerService: RegisterUserService, userService: UserService },
     payload: {data: NewUser}
 }
 
 export async function registerUser({dependencies, payload}: RegisterUserData) {
-    const { userService } = dependencies;
+    const { registerService, userService } = dependencies;
     const { email, name, passwordHash, role } = payload.data;
     if (!email || !email.includes('@')) {
         throw new Error('Invalid email format');
@@ -17,5 +18,5 @@ export async function registerUser({dependencies, payload}: RegisterUserData) {
     if (result) {
         throw new Error('User with this email already exists');
     }
-    return userService.register(payload.data);
+    return registerService.register(payload.data);
 }

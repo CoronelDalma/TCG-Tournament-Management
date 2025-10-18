@@ -1,18 +1,20 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { registerUser } from './registerUser';
 import { newUserMock, resetExistingUsers, existingUsers } from '../../entities/mocks/user-mock';
-import { userServiceMock } from '../../services/mocks/UserServiceMock';
+import { RegisterUserServiceMock } from '../../services/mocks/RegisterUserServiceMock';
+import { UserServiceMock } from '../../services/mocks/UserServiceMock';
 
 beforeEach(() => {
     resetExistingUsers();
 })
 
 describe('RegisterUser', async () => {
-    const userService = userServiceMock;
+    const registerService = RegisterUserServiceMock;
+    const userService = UserServiceMock;
 
     test('should register a new user successfully', async () => {
         const result = registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserMock()}
         });
         expect(result).resolves.toHaveProperty('id');
@@ -20,7 +22,7 @@ describe('RegisterUser', async () => {
 
     test('should fail registration with invalid email', async () => {
         const result = registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserMock({ email: 'invalidEmail' }) }
         });
         expect(result).rejects.toThrow('Invalid email format');
@@ -28,7 +30,7 @@ describe('RegisterUser', async () => {
 
     test('should fail registration with empty email', async () => {
         const result = registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserMock({ email: '' }) }
         });
         expect(result).rejects.toThrow('Invalid email format');
@@ -36,7 +38,7 @@ describe('RegisterUser', async () => {
 
     test('should fail registration if email already exists', async () => {
         const result = registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserMock({ email: 'player@email.com' }) }
         });
         expect(result).rejects.toThrow('User with this email already exists');
@@ -44,19 +46,19 @@ describe('RegisterUser', async () => {
 
     test('should fail registration with missing required fields', async () => {
         const result = registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserMock({ name: '' }) }
         });
         expect(result).rejects.toThrow('Missing required user data');
 
         const result2 = registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserMock({ passwordHash: '' }) }
         });
         expect(result2).rejects.toThrow('Missing required user data');
 
         const result3 = registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserMock({ role: '' as any }) }
         });
         expect(result3).rejects.toThrow('Missing required user data');
@@ -65,7 +67,7 @@ describe('RegisterUser', async () => {
     test('should add a new user with valid data', async () => {
         const newUserData = newUserMock();
         const result = await registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserData }
         });
         expect(result).toMatchObject(newUserData);
@@ -75,7 +77,7 @@ describe('RegisterUser', async () => {
         const newUserData = newUserMock();
         const existingUsersCount = existingUsers.length;
         await registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserData }
         });
         const updatedUsersCount = existingUsers.length;
@@ -85,7 +87,7 @@ describe('RegisterUser', async () => {
     test('should assign a unique id to the newly registered user', async () => {
         const newUserData = newUserMock();
         const result = await registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: newUserData }
         });
         expect(result.id).toBeDefined();
@@ -97,11 +99,11 @@ describe('RegisterUser', async () => {
         const user2 = newUserMock({ email: 'newUser2@email.com' });
 
         const result1 = await registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: user1 }
         });
         const result2 = await registerUser({
-            dependencies: { userService },
+            dependencies: {registerService, userService },
             payload: { data: user2 }
         });
 

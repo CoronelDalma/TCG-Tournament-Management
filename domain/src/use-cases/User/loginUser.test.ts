@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import {  resetExistingUsers, loginCredentialsMock } from '../../entities/mocks/user-mock';
-import { userServiceMock } from '../../services/mocks/UserServiceMock';
+import { UserServiceMock } from '../../services/mocks/UserServiceMock';
 import { loginUser } from './loginUser';
 import { AuthServiceMock } from '../../services/mocks/AuthServiceMock';
 
@@ -9,7 +9,7 @@ beforeEach(() => {
 })
 
 describe('LoginUser', async () => {
-    const userService = userServiceMock;
+    const userService = UserServiceMock;
     const authService = AuthServiceMock;
 
     test('should login a user successfully with correct credentials', async () => {
