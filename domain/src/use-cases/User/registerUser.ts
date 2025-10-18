@@ -10,6 +10,7 @@ interface RegisterUserData {
 export async function registerUser({dependencies, payload}: RegisterUserData) {
     const { registerService, userService } = dependencies;
     const { email, name, passwordHash, role } = payload.data;
+
     if (!email || !email.includes('@')) {
         throw new Error('Invalid email format');
     }

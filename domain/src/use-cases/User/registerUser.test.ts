@@ -17,7 +17,7 @@ describe('RegisterUser', async () => {
             dependencies: {registerService, userService },
             payload: { data: newUserMock()}
         });
-        expect(result).resolves.toHaveProperty('id');
+        await expect(result).resolves.toHaveProperty('id');
     })
 
     test('should fail registration with invalid email', async () => {
@@ -25,7 +25,7 @@ describe('RegisterUser', async () => {
             dependencies: {registerService, userService },
             payload: { data: newUserMock({ email: 'invalidEmail' }) }
         });
-        expect(result).rejects.toThrow('Invalid email format');
+        await expect(result).rejects.toThrow('Invalid email format');
     })
 
     test('should fail registration with empty email', async () => {
@@ -33,7 +33,7 @@ describe('RegisterUser', async () => {
             dependencies: {registerService, userService },
             payload: { data: newUserMock({ email: '' }) }
         });
-        expect(result).rejects.toThrow('Invalid email format');
+        await expect(result).rejects.toThrow('Invalid email format');
     })
 
     test('should fail registration if email already exists', async () => {
@@ -41,7 +41,7 @@ describe('RegisterUser', async () => {
             dependencies: {registerService, userService },
             payload: { data: newUserMock({ email: 'player@email.com' }) }
         });
-        expect(result).rejects.toThrow('User with this email already exists');
+        await expect(result).rejects.toThrow('User with this email already exists');
     })
 
     test('should fail registration with missing required fields', async () => {
@@ -49,19 +49,19 @@ describe('RegisterUser', async () => {
             dependencies: {registerService, userService },
             payload: { data: newUserMock({ name: '' }) }
         });
-        expect(result).rejects.toThrow('Missing required user data');
+        await expect(result).rejects.toThrow('Missing required user data');
 
         const result2 = registerUser({
             dependencies: {registerService, userService },
             payload: { data: newUserMock({ passwordHash: '' }) }
         });
-        expect(result2).rejects.toThrow('Missing required user data');
+        await expect(result2).rejects.toThrow('Missing required user data');
 
         const result3 = registerUser({
             dependencies: {registerService, userService },
             payload: { data: newUserMock({ role: '' as any }) }
         });
-        expect(result3).rejects.toThrow('Missing required user data');
+        await expect(result3).rejects.toThrow('Missing required user data');
     })
 
     test('should add a new user with valid data', async () => {
