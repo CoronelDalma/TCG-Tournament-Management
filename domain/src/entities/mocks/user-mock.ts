@@ -1,5 +1,33 @@
 import { UserRole, User } from '../User';
 
+export let existingUsers: User[] = [];
+
+export function resetExistingUsers() {
+    existingUsers.length = 0;
+    existingUsers.push(
+        {
+        id: 'user-1',
+        name: 'Alice Admin',
+        email: 'admin@email.com',
+        passwordHash: 'hashedAdmin',
+        role: UserRole.ADMIN
+        },
+        {
+        id: 'user-2',
+        name: 'Oscar Organizer',
+        email: 'organizer@email.com',
+        passwordHash: 'hashedOrganizer',
+        role: UserRole.ORGANIZER
+        },
+        {
+        id: 'user-3',
+        name: 'Peter Player',
+        email: 'player@email.com',
+        passwordHash: 'hashedPlayer',
+        role: UserRole.PLAYER
+        }
+    );
+}
 export function getInitialUsers(): User[] {
     return [
         {
@@ -35,7 +63,7 @@ const validUser = {
 
 export function userMock(opts?: User): User {
     return {
-        id: 'user-123',
+        id: 'user-' + (existingUsers.length + 1),
         ...validUser,
         ...opts,
     };

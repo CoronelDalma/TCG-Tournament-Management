@@ -1,41 +1,15 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { registerUser } from './registerUser';
-import { newUserMock, userMock, getInitialUsers } from '../../entities/mocks/user-mock';
-import { User, UserRole, NewUser } from '../../entities';
-
-export let existingUsers: User[] = [];
+import { newUserMock, resetExistingUsers, existingUsers } from '../../entities/mocks/user-mock';
+import { userServiceMock } from '../../services/mocks/UserServiceMock';
 
 beforeEach(() => {
-    existingUsers = getInitialUsers();
+    resetExistingUsers();
 })
 
 describe('RegisterUser', async () => {
     // TODO sacar de aca el mock del service
-    const userService = {
-        getByEmail: async (email: string) => {
-            // Simulate fetching user by email
-            return existingUsers.find(user => user.email === email) || null;
-        },
-        register: async (userData: NewUser) => {
-            // Simulate user registration logic
-            if (!userData.email || !userData.name || !userData.passwordHash || !userData.role) {
-                throw new Error('Missing required user data');
-            }
-            if (!userData.email || !userData.email.includes('@')) {
-                throw new Error('Invalid email format');
-            }
-
-            const existingUser = await userService.getByEmail(userData.email);
-            if (existingUser) {
-                throw new Error('User with this email already exists');
-            } else {
-                    const newUser = userMock(userData as User);
-                    existingUsers.push(newUser);
-                    return newUser;
-            }
-        },
-
-    }
+    const userService = userServiceMock;
 
     test('should register a new user successfully', async () => {
         const result = registerUser({
@@ -108,5 +82,35 @@ describe('RegisterUser', async () => {
         const updatedUsersCount = existingUsers.length;
         expect(updatedUsersCount).toBe(existingUsersCount + 1);
     })
+
+    test('should assign a unique id to the newly registered user', async () => {
+        const newUserData = newUserMock();
+        const result = await registerUser({
+            dependencies: { userService },
+            payload: { data: newUserData }
+        });
+        expect(result.id).toBeDefined();
+        expect(result.id).not.toBe('');
+    });
+
+    test('should register multiple users with different emails successfully', async () => {
+        const user1 = newUserMock({ email: 'newUser1@email.com' });
+        const user2 = newUserMock({ email: 'newUser2@email.com' });
+
+        const result1 = await registerUser({
+            dependencies: { userService },
+            payload: { data: user1 }
+        });
+        const result2 = await registerUser({
+            dependencies: { userService },
+            payload: { data: user2 }
+        });
+
+        expect(result1).toHaveProperty('id');
+        expect(result2).toHaveProperty('id');
+        expect(result1.email).toBe(user1.email);
+        expect(result2.email).toBe(user2.email);
+        expect(result1.id).not.toBe(result2.id);
+    });
 
 });
