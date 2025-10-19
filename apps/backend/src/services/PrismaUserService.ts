@@ -12,7 +12,7 @@ export class PrismaUserService implements UserService {
         return prisma.user.findUnique({ where: { id }}) as Promise<User | null>;
     }
     getUserRole(userId: string): Promise<string | null> {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented get User role.");
     }
     createUser(data: NewUser): Promise<User> {
         return prisma.user.create({ data }) as Promise<User>;
