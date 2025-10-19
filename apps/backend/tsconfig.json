@@ -1,13 +1,33 @@
+// {
+//     "extends": "../../tsconfig.json",
+//     "compilerOptions": {
+//         "baseUrl": "../../../",
+//         "outDir": "dist",
+//         "rootDir": "../../../",
+//         //"paths": { "@domain/*":["domain/src/*"]}
+//     },
+
+//     "include": ["src"]
+//     // "exclude": ["**/*.spec.ts", "node_modules", "dist"]
+// }
 {
-    "extends": "../../tsconfig.json",
+    "extends": "../../tsconfig.json", // si tenés uno global en la raíz
     "compilerOptions": {
-        "baseUrl": "../../",
+        "target": "ES2020",
+        "module": "CommonJS",
+        "moduleResolution": "Node",
         "outDir": "dist",
-        "rootDir": "../../",
-        // "paths": { "@domain/*":["domain/src/*"]}
+        "rootDir": "src", // apunta a apps/backend/src
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "baseUrl": ".", // base para rutas relativas
+        "paths": {
+        // permite importar desde domain/src usando rutas limpias
+            "domain/*": ["../../domain/src/*"]
+        }
     },
-    // "include": ["**/*.ts"],
-    // "exclude": ["node_modules", "dist"]
-    "include": ["src"]
-    // "exclude": ["**/*.spec.ts", "node_modules", "dist"]
+    "include": ["src"],
+    "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }

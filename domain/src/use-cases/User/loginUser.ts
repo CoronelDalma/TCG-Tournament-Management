@@ -20,6 +20,6 @@ export async function loginUser({dependencies, payload}: AuthUserData) {
     if (!isPasswordValid) {
         throw new Error('Invalid password');
     }
-    const token = await authService.generateToken(user.id);
+    const token = await authService.generateToken(user.id, user.role);
     return { user, token };
 }

@@ -1,3 +1,4 @@
-export * from  "./registerUser.js";
-export * from "./loginUser.js";
-export * from "./authenticateUser.js";
+export * from  "./registerUser";
+export * from "./loginUser";
+export * from "./deleteUser";
+export * from "./updateUser";

@@ -1,2 +1,2 @@
-export * from "./use-cases.js"
-export * from "./User/index.js"
+export * from "./use-cases"
+export * from "./User/index"
