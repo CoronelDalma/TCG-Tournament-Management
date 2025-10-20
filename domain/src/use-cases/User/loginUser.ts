@@ -1,25 +1,23 @@
-import { UserService } from '../../services/User/UserService';
-import { AuthService } from '../../services/User/AuthService';
+import { LoginService } from '../../services/User/LoginService';
+import { AuthService } from '../../services';
 import { LoginCredentials } from '../../entities';  
 
 
 interface AuthUserData {
-    dependencies: { userService: UserService, authService: AuthService },
+    dependencies: { loginService:LoginService, authService: AuthService },
     payload: { data: LoginCredentials }
 }
 
 export async function loginUser({dependencies, payload}: AuthUserData) {
-    const { userService, authService } = dependencies;
-    const { email, password } = payload.data;
- 
-    const user = await userService.getByEmail(email);
-    if (!user) {
-        throw new Error('User not found');
+    const { loginService, authService } = dependencies;
+
+    try {
+        const user = await loginService.login(payload.data);
+
+        const token = await authService.generateToken(user.id, user.role);
+        return { user, token };
+    } catch (error: any) {
+        throw new Error(`Login failed: ${error.message}`);
     }
-    const isPasswordValid = await authService.comparePassword(password, user.passwordHash);
-    if (!isPasswordValid) {
-        throw new Error('Invalid password');
-    }
-    const token = await authService.generateToken(user.id, user.role);
-    return { user, token };
+
 }

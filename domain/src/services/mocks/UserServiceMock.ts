@@ -16,6 +16,7 @@ export const UserServiceMock = {
             return user ? user.role : null;
         },
         createUser: async (userData: NewUser) => {
+            // todo validaciones
             const newUser = userMock(userData as User); 
             existingUsers.push(newUser);
             return newUser;

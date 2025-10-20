@@ -15,6 +15,7 @@ export class PrismaUserService implements UserService {
         throw new Error("Method not implemented get User role.");
     }
     createUser(data: NewUser): Promise<User> {
+        if (!data.email) throw new Error("Email is required for creating a user.");
         return prisma.user.create({ data }) as Promise<User>;
     }
     update(id: string, data: Partial<User>): Promise<User> {
