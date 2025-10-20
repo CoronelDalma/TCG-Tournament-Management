@@ -25,7 +25,7 @@ describe('LoginUser', async () => {
             dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ email: 'noRegistered@email' })}
         });
-        expect(result).rejects.toThrow('Invalid credentials');
+        await expect(result).rejects.toThrow('Invalid credentials');
     });
 
     test('should fail login with incorrect password', async () => {
@@ -33,7 +33,7 @@ describe('LoginUser', async () => {
             dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ password: 'wrongPassword' })}
         });
-        expect(result).rejects.toThrow('Incorrect password');
+        await expect(result).rejects.toThrow('Incorrect password');
     });
     
     test('should fail login with empty email', async () => {
@@ -41,7 +41,7 @@ describe('LoginUser', async () => {
             dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ email: '' })}
         });
-        expect(result).rejects.toThrow('Email and password are required');
+        await expect(result).rejects.toThrow('Email and password are required');
     });
 
     test('should fail login with empty password', async () => {
@@ -49,7 +49,7 @@ describe('LoginUser', async () => {
             dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ password: '' })}
         });
-        expect(result).rejects.toThrow('Email and password are required');
+        await expect(result).rejects.toThrow('Email and password are required');
     });
 
     test('different users should login correctly', async () => {
@@ -57,11 +57,11 @@ describe('LoginUser', async () => {
             dependencies: { userService, authService },
             payload: { data: loginCredentialsMock()}
         });
-        expect(adminLogin).resolves.toHaveProperty('id');
+        await expect(adminLogin).resolves.toHaveProperty('id');
         const playerLogin = loginUser({
             dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ email: 'player@email.com', password: 'passPlayer' })}
         });
-        expect(playerLogin).resolves.toHaveProperty('id');
+        await expect(playerLogin).resolves.toHaveProperty('id');
     });
 })
