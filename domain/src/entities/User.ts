@@ -17,6 +17,10 @@ export interface User extends Entity {
 
 export type NewUser = Omit<User, 'id'>;
 
+export type RegisterUserRequest = Omit<NewUser, 'passwordHash'> & {
+    password: string;
+};
+
 export type LoginCredentials = {
     email: string;
     password: string;

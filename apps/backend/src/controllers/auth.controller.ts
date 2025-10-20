@@ -3,22 +3,23 @@ import { registerUser, loginUser } from "domain/src"
 import { PrismaUserService } from "../services/PrismaUserService";
 import { AuthServiceImplementation } from "../services/AuthServise";
 import { RegisterServiceImplementation } from "../services/RegisterService";
+import { LoginServiceImplementation } from "src/services/LoginService";
 
 const userService = new PrismaUserService();
 const authService = new AuthServiceImplementation();
 const registerService = new RegisterServiceImplementation();
+const loginService = new LoginServiceImplementation();
 
 export async function registerController(req: Request, res:Response) {
     console.log("register endpoint")
     try {
-        const passwordHash = await authService.hashPassword(req.body.password);
         const user = await registerUser({
-            dependencies: { registerService, userService },
+            dependencies: { registerService, userService, authService },
             payload: {
                 data: {
                     name: req.body.name,
                     email: req.body.email,
-                    passwordHash,
+                    password: req.body.password,
                     role: req.body.role
                 }
             }
@@ -41,7 +42,7 @@ export async function loginController(req: Request, res: Response) {
             }
         })
 
-        const token = authService.generateToken(user.user.id, user.user.role);
+        const token = authService.generateToken(user.id, user.role);
         res.json({ token });
     } catch (error: any) {
         res.status(401).json({ error: error.message})

@@ -1,4 +1,4 @@
-import { UserRole, User } from '../User';
+import { UserRole, User, RegisterUserRequest } from '../User';
 
 export let existingUsers: User[] = [];
 
@@ -44,9 +44,12 @@ export function userMock(opts?: User): User {
     };
 }
 
-export function newUserMock(opts?: Partial<User>): Omit<User, 'id'> {
+export function newUserMock(opts?: Partial<RegisterUserRequest>): RegisterUserRequest {
     return {
-        ...validUser,
+        name: 'Mock User',
+        email: 'valid@email.com',
+        password: 'hashedpassword',
+        role: UserRole.PLAYER,
         ...opts,
     };
 }

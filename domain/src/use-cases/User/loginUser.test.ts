@@ -2,67 +2,66 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import {  resetExistingUsers, loginCredentialsMock } from '../../entities/mocks/user-mock';
 import { loginUser } from './loginUser';
 import { AuthServiceMock } from '../../services/mocks/AuthServiceMock';
-import { LoginServiceMock } from '../../services/mocks/LoginServiceMock';
+import { UserServiceMock } from '../../services/mocks/UserServiceMock';
 
 beforeEach(() => {
     resetExistingUsers();
 })
 
 describe('LoginUser', async () => {
-    const loginService = LoginServiceMock;
+    const userService = UserServiceMock;
     const authService = AuthServiceMock;
 
     test('should login a user successfully with correct credentials', async () => {
         const result = await loginUser({
-            dependencies: { loginService, authService },
+            dependencies: { userService, authService },
             payload: { data: loginCredentialsMock() }
         });
-        expect(result).toHaveProperty('user');
-        expect(result).toHaveProperty('token');
+        expect(result).toHaveProperty('id');
     });
 
     test('should fail login with invalid email', async () => {
         const result = loginUser({
-            dependencies: { loginService, authService },
+            dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ email: 'noRegistered@email' })}
         });
-        expect(result).rejects.toThrow('User not found');
+        expect(result).rejects.toThrow('Invalid credentials');
     });
 
     test('should fail login with incorrect password', async () => {
         const result = loginUser({
-            dependencies: { loginService, authService },
+            dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ password: 'wrongPassword' })}
         });
-        expect(result).rejects.toThrow('Login failed: Incorrect password');
+        expect(result).rejects.toThrow('Incorrect password');
     });
     
     test('should fail login with empty email', async () => {
         const result = loginUser({
-            dependencies: { loginService, authService },
+            dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ email: '' })}
         });
-        expect(result).rejects.toThrow('User not found');
+        expect(result).rejects.toThrow('Email and password are required');
     });
 
     test('should fail login with empty password', async () => {
         const result = loginUser({
-            dependencies: { loginService, authService },
+            dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ password: '' })}
         });
-        expect(result).rejects.toThrow('Login failed: Incorrect password');
+        expect(result).rejects.toThrow('Email and password are required');
     });
 
     test('different users should login correctly', async () => {
         const adminLogin = loginUser({
-            dependencies: { loginService, authService },
+            dependencies: { userService, authService },
             payload: { data: loginCredentialsMock()}
         });
-        expect(adminLogin).resolves.toHaveProperty('token');
+        expect(adminLogin).resolves.toHaveProperty('id');
         const playerLogin = loginUser({
-            dependencies: { loginService, authService },
+            dependencies: { userService, authService },
             payload: { data: loginCredentialsMock({ email: 'player@email.com', password: 'passPlayer' })}
         });
-        expect(playerLogin).resolves.toHaveProperty('token');
+        expect(playerLogin).resolves.toHaveProperty('id');
     });
 })
