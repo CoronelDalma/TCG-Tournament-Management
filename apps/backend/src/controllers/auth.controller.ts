@@ -3,7 +3,7 @@ import { registerUser, loginUser } from "domain/src"
 import { PrismaUserService } from "../services/PrismaUserService";
 import { AuthServiceImplementation } from "../services/AuthServise";
 import { RegisterServiceImplementation } from "../services/RegisterService";
-import { LoginServiceImplementation } from "src/services/LoginService";
+import { LoginServiceImplementation } from "../services/LoginService";
 
 const userService = new PrismaUserService();
 const authService = new AuthServiceImplementation();
@@ -42,8 +42,9 @@ export async function loginController(req: Request, res: Response) {
             }
         })
 
-        const token = authService.generateToken(user.id, user.role);
-        res.json({ token });
+        const token = await authService.generateToken(user.id, user.role);
+        console.log(token);
+        res.status(200).json({ token });
     } catch (error: any) {
         res.status(401).json({ error: error.message})
     }

@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { UserService } from "domain/src";
 import { NewUser, User } from "domain/src"
+import { UserSchema } from "../validations/user.schema";
 
 const prisma = new PrismaClient();
 
@@ -15,14 +16,25 @@ export class PrismaUserService implements UserService {
         throw new Error("Method not implemented get User role.");
     }
     createUser(data: NewUser): Promise<User> {
-        if (!data.email) throw new Error("Email is required for creating a user.");
+        const validationSchema = UserSchema.omit({ id: true });
+        const validation = validationSchema.safeParse(data);
+
+        // if (!data.email) throw new Error("Email is required for creating a user.");
+        if (!validation.success) {
+            const errorMessages = validation.error.issues.map(issue => 
+                `Field '${issue.path.join('.')}' is invalid: ${issue.message}`).join(';');
+            
+                throw new Error(`Usuario con datos invalidos: ${errorMessages}`);
+        }
+
         return prisma.user.create({ data }) as Promise<User>;
     }
     update(id: string, data: Partial<User>): Promise<User> {
         return prisma.user.update({ where: {id}, data}) as Promise<User>;
     }
-    delete(id: string): Promise<void> {
-        return prisma.user.delete({ where: {id}}) as unknown as Promise<void>;
+    async delete(id: string): Promise<void> {
+        await prisma.user.delete({ where: {id}});
+        return undefined;
     }
     
 }

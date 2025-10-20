@@ -5,6 +5,8 @@ import { User, UserRole } from "domain/src/entities";
 import { PrismaClient } from "@prisma/client"
 
 const urlRegister= "/api/auth/register";
+const urlLogin = "/api/auth/login";
+
 /// ----------mocks
 const validUser: Omit<User, 'id'> = {
     name: 'Mock User',
@@ -12,12 +14,16 @@ const validUser: Omit<User, 'id'> = {
     passwordHash: 'hashedpassword', // aaaaah me equivoque de nombreeeee . debo retocar
     role: UserRole.PLAYER,
 }
+
 export function newUserMock(opts?: Partial<Omit<User, 'id'>>): Omit<User, 'id'> {
     return {
         ...validUser,
         ...opts,
     };
 }
+
+const LOGIN_EMAIL = 'login_test@example.com';
+const LOGIN_PASSWORD = 'password123';
 
 const prisma = new PrismaClient();
 
@@ -30,7 +36,17 @@ describe("Auth endpoints", () => {
 
     beforeEach(async () => {
         // Limpia la tabla antes de cada test
-        await prisma.user.deleteMany();
+        await prisma.user.deleteMany({});
+
+        await prisma.user.create({
+            data: {
+                id: '12345678-1234-1234-1234-123456789012', // ID fijo para referencia
+                name: 'Login Tester',
+                email: LOGIN_EMAIL,
+                passwordHash: 'hashedPassword', // Usamos la versión hasheada
+                role: UserRole.PLAYER,
+            }
+        });
     });
 
     afterAll(async () => {
@@ -87,4 +103,63 @@ describe("Auth endpoints", () => {
 
         expect(res1.body.id).not.toEqual(res2.body.id);
     })
+
+    test("login with valid credentials", async () => {
+        const result = await request(app).post(urlRegister).send({
+            name: "Dalma",
+            email: "dalma@email.com",
+            password: "secure123",
+            role: "player"
+            });
+        expect(result.status).toBe(201);
+
+        const res = await request(app).post("/api/auth/login").send({
+        email: "dalma@email.com",
+        password: "secure123"
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("token");
+        expect(typeof res.body.token).toBe("string");
+        expect(res.body.token.length).toBeGreaterThan(10);
+        expect(res.body.token.split('.').length).toBe(3);
+    });
+
+    test("should reject login with non-existent email", async () => {
+        const res = await request(app).post(urlLogin).send({
+            email: 'nonexistent@example.com',
+            password: "nothing",
+        });
+
+        expect(res.status).toBe(401);
+        expect(res.body).toHaveProperty("error");
+        expect(res.body.error).toContain("Invalid credentials");
+    });
+
+    test("should reject login with incorrect password", async () => {
+        const res = await request(app).post(urlLogin).send({
+            email: LOGIN_EMAIL,
+            password: 'wrongpassword',
+        });
+
+        expect(res.status).toBe(401);
+        expect(res.body).toHaveProperty("error");
+        expect(res.body.error).toContain("Incorrect password");
+    });
+
+    test("should reject login without required fields (email or password)", async () => {
+        // Sin email
+        let res = await request(app).post(urlLogin).send({
+            password: LOGIN_PASSWORD,
+        });
+        expect(res.status).toBe(401); 
+        expect(res.body.error).toContain("Email and password are required");
+
+        // Sin password
+        res = await request(app).post(urlLogin).send({
+            email: LOGIN_EMAIL,
+        });
+        expect(res.status).toBe(401);
+        expect(res.body.error).toContain("Email and password are required");
+    });
 })

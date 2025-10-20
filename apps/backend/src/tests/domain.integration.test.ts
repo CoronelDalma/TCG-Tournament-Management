@@ -2,7 +2,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { UserRole, registerUser } from 'domain/src'
 import { userServiceMock } from './mocks/backendUserServiceMock'
 import { backendRegisterServiceMock } from './mocks/backendRegisterServiceMock';
-import { RegisterUserRequest, User } from 'domain/entities';
+import { RegisterUserRequest, User } from 'domain/src';
 import { backendAuthServiceMock } from './mocks/backendAuthService';
 
 const newUserPayload: RegisterUserRequest = {
