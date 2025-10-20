@@ -1,12 +1,14 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
-import { NewUser, UserRole, registerUser } from '../../../../domain/dist'
+import { UserRole, registerUser } from 'domain/src'
 import { userServiceMock } from './mocks/backendUserServiceMock'
 import { backendRegisterServiceMock } from './mocks/backendRegisterServiceMock';
+import { RegisterUserRequest, User } from 'domain/entities';
+import { backendAuthServiceMock } from './mocks/backendAuthService';
 
-const newUserPayload: NewUser = {
+const newUserPayload: RegisterUserRequest = {
     name: "Test user",
     email: "testUser@email.com",
-    passwordHash: "hashedpassword",
+    password: "password",
     role: UserRole.ORGANIZER
 };
 
@@ -19,7 +21,8 @@ describe("Domain module integration", async () => {
         const result = await registerUser({
             dependencies: { 
                 registerService: backendRegisterServiceMock, 
-                userService: userServiceMock 
+                userService: userServiceMock,
+                authService: backendAuthServiceMock 
             },
             payload: { data: newUserPayload }
         });

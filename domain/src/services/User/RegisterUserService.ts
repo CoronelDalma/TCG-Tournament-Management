@@ -1,5 +1,5 @@
-import { User, NewUser } from "../../entities";
+import { User, RegisterUserRequest } from "../../entities";
 
 export interface RegisterUserService {
-    register(userData: NewUser): Promise<User>;
+    register(userData: RegisterUserRequest): Promise<User>;
 }

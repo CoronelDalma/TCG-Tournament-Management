@@ -26,10 +26,10 @@ export async function registerUser({dependencies, payload}: RegisterUserData) {
     }
 
     const passwordHash = await authService.hashPassword(password);
-    const newUserForService: NewUser = {
+    const newUserForService: RegisterUserRequest = {
         name,
         email,
-        passwordHash, 
+        password, 
         role
     };
     return registerService.register(newUserForService);

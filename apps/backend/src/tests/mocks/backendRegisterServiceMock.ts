@@ -1,17 +1,16 @@
-import { RegisterUserService, User, NewUser, UserRole } from "../../../../../domain/dist";
+import { RegisterUserRequest } from "domain/entities";
+import { RegisterUserService, User, NewUser, UserRole } from "domain/src";
 import { vi } from "vitest";
 
 export const backendRegisterServiceMock: RegisterUserService = {
     // Usamos vi.fn() para que la función sea rastreable
-    register: vi.fn((userData: NewUser): Promise<User> => {
-        // Simulamos el comportamiento exitoso del registro:
-        // Añadimos un ID simulado (lo que haría la DB) y un rol (si no viene en NewUser)
-        
-        // Creamos un objeto User completo a partir de NewUser
+    register: vi.fn((userData: RegisterUserRequest): Promise<User> => {
         const mockUser: User = {
-            ...userData,
-            id: "mock-new-user-id-123", // El servicio real generaría un ID
-            role: "player" // Asume un rol por defecto
+            id: "mock-new-user-id-123",
+            name: userData.name,
+            email: userData.email,
+            passwordHash: "hashedpassword",
+            role: userData.role
         };
         
         return Promise.resolve(mockUser);

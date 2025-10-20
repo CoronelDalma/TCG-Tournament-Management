@@ -2,13 +2,14 @@ import { NewUser, RegisterUserService, User } from "domain/src";
 import { PrismaClient } from "@prisma/client";
 import { PrismaUserService } from "./PrismaUserService";
 import { AuthServiceImplementation } from "./AuthServise";
+import { RegisterUserRequest } from "domain/dist";
 
 const prisma = new PrismaClient();
 const userService = new PrismaUserService();
 const authService = new AuthServiceImplementation();
 
 export class RegisterServiceImplementation implements RegisterUserService {
-    async register(userData: NewUser): Promise<User> {
+    async register(userData: RegisterUserRequest): Promise<User> {
         console.log("registrando usuario");
         const existingUser = await userService.getByEmail(userData.email);
 
@@ -16,10 +17,16 @@ export class RegisterServiceImplementation implements RegisterUserService {
             throw new Error("Ya existe un usuario registrado con ese email");
         }
 
-        const passwordHash = await authService.hashPassword(userData.passwordHash);
+        const passwordHash = await authService.hashPassword(userData.password);
+        const newUser: NewUser = {
+            name: userData.name,
+            email: userData.email,
+            passwordHash: passwordHash,
+            role: userData.role
+        };
 
         console.log(passwordHash);
-        const createdUser = userService.createUser(userData);
+        const createdUser = userService.createUser(newUser);
         console.log(createdUser);
 
         return createdUser;
