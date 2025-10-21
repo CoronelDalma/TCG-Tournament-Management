@@ -1,0 +1,83 @@
+import { PrismaClient } from "@prisma/client";
+import { NewTournament, Tournament, TournamentStatus } from "domain/entities";
+import { TournamentService } from "domain/src";
+
+const prisma = new PrismaClient();
+
+function mapPrismaTournamentToDomain(prismaTournament: any): Tournament {
+    return {
+        id: prismaTournament.id,
+        name: prismaTournament.name,
+        description: prismaTournament.description || '',
+        organizerId: prismaTournament.organizedId,
+        maxPlayers: prismaTournament.maxPlayers,
+        startDate: prismaTournament.startDate,
+        status: prismaTournament.status as TournamentStatus,
+        format: prismaTournament.format,
+        registeredPlayersIds: prismaTournament.registeredPlayersIds ? prismaTournament.registeredPlayersIds.map(( p: any) => p.id) : [],
+    }
+}
+export class PrismaTournamentService implements TournamentService {
+    async createTournament(data: NewTournament): Promise<Tournament> {
+        const createdTournament = await prisma.tournament.create({
+            data: {
+                name: data.name,
+                description: data.description,
+                organizedId: data.organizerId,
+                maxPlayers: data.maxPlayers,
+                startDate: data.startDate,
+                format: data.format,
+                status: 'PENDING', 
+            },
+            include: { registeredPlayersIds: true}
+        });
+
+        return mapPrismaTournamentToDomain(createdTournament);
+    }
+    async getTournamentById(id: string): Promise<Tournament | null> {
+        const tournament = await prisma.tournament.findUnique({ where: {id}, include: {registeredPlayersIds: true}});
+        if (!tournament) return null;
+
+        return mapPrismaTournamentToDomain(tournament);
+    }
+    async getAllTournamentByOrganizerId(organizerId: string): Promise<Tournament[]> {
+        const prismaTournaments = await prisma.tournament.findMany({
+            where: {
+                status: status as any
+            },
+            include: {registeredPlayersIds: true}
+        });
+
+        return prismaTournaments.map(mapPrismaTournamentToDomain);
+    }
+
+    async updateTournamentById(id: string, updateDAta: Partial<Tournament>): Promise<Tournament> {
+        const { registeredPlayersIds, ...rest} = updateDAta;
+        let playerUpdate: any = {};
+
+        if (registeredPlayersIds !== undefined) {
+            playerUpdate.players = {
+                set: registeredPlayersIds.map(playerId => ({ id: playerId}))
+            }
+        }
+
+        const updatedTournament = await prisma.tournament.update({
+            where: {id},
+            data: {
+                ...rest,
+                ...playerUpdate
+            },
+            include: {registeredPlayersIds: true}
+        });
+
+        return mapPrismaTournamentToDomain(updatedTournament);
+    }
+
+    deleteById(id: string): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    getAllByStatus(status: TournamentStatus): Promise<Tournament[]> {
+        throw new Error("Method not implemented.");
+    }
+    
+}

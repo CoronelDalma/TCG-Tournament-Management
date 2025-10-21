@@ -1,4 +1,4 @@
-import { RegisterUserRequest } from "domain/entities";
+import { RegisterUserRequest } from "domain/src/entities";
 import { RegisterUserService, User, NewUser, UserRole } from "domain/src";
 import { vi } from "vitest";
 

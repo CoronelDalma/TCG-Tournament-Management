@@ -13,10 +13,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model user {
+
+enum UserRole {
+  ADMIN
+  ORGANIZER
+  PLAYER
+}
+
+enum TournamentStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELED
+}
+
+model User {
   id            String @id @default(uuid())
   name          String
   email         String @unique
   passwordHash  String
-  role          String
+  role          UserRole  @default(PLAYER)
+  tournaments   Tournament[]
+  organizedTournaments  Tournament[]      @relation("OrganizedTournaments")
 }
+
+model Tournament {
+  id            String            @id @default(uuid())
+  name          String
+  description   String?
+  organizedId   String
+  organizer     User              @relation("OrganizedTournaments", fields: [organizedId], references: [id])
+  maxPlayers    Int
+  startDate     DateTime
+  status        TournamentStatus @default(PENDING)
+  registeredPlayersIds    User[]
+  format        String
+
+  @@index([organizedId])
+}
+
+

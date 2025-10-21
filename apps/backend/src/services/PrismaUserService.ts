@@ -19,7 +19,6 @@ export class PrismaUserService implements UserService {
         const validationSchema = UserSchema.omit({ id: true });
         const validation = validationSchema.safeParse(data);
 
-        // if (!data.email) throw new Error("Email is required for creating a user.");
         if (!validation.success) {
             const errorMessages = validation.error.issues.map(issue => 
                 `Field '${issue.path.join('.')}' is invalid: ${issue.message}`).join(';');
