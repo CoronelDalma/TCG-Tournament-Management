@@ -15,12 +15,7 @@ export async function createTournamentController( req: AuthRequest, res: Respons
     if (!requesterId || !req.body.name || !req.body.maxPlayers || !req.body.format || !req.body.startDate) {
         return res.status(400).json({ error: "Missing required fields (name, maxPlayers, format, startDate)." });
     }
-        console.log("name: ", req.body.name);
-        console.log("name: ", req.body.maxPlayers);
-        console.log("name: ", req.body.format);
-        console.log("name: ", req.body.startDate);
-        console.log("useriD. ", requesterId);
-        console.log("role: ", req.body.role)
+
     try {
         const startDate = new Date(req.body.startDate);
         const payloadData: TournamentCredentials = {

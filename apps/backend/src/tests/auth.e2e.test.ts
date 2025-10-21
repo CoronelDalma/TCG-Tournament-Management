@@ -8,8 +8,7 @@ const urlRegister= "/api/auth/register";
 const urlLogin = "/api/auth/login";
 
 /// ----------mocks
-const PLAYER_ROLE = "PLAYER" as UserRole;
-const PRISMA_ROLE_PLAYER = PrismaUserRole.PLAYER;
+const PLAYER_ROLE = "player";
 
 const validUser: Omit<User, 'id'> = {
     name: 'Mock User',
@@ -39,6 +38,7 @@ describe("Auth endpoints", () => {
 
     beforeEach(async () => {
         // Limpia la tabla antes de cada test
+        await prisma.tournament.deleteMany({});
         await prisma.user.deleteMany({});
 
         await prisma.user.create({
@@ -47,7 +47,7 @@ describe("Auth endpoints", () => {
                 name: 'Login Tester',
                 email: LOGIN_EMAIL,
                 passwordHash: 'hashedPassword', // Usamos la versión hasheada
-                role: PRISMA_ROLE_PLAYER,
+                role: PLAYER_ROLE,
             }
         });
     });
