@@ -10,7 +10,7 @@ const newUser = {
     name: "Dalma",
     email: "dalma@email.com",
     passwordHash: "hashed123", 
-    role: "player" as UserRole
+    role: UserRole.PLAYER
 };
 export function newUserMock(opts?: Partial<Omit<User, 'id'>>): Omit<User, 'id'> {
     return {
@@ -34,7 +34,13 @@ describe ("PrismaUserService", () => {
     });
 
     test("create and retrieve user by email", async () => {
-        const created = await userService.createUser(newUser);
+        const created = await userService.createUser({
+            name: "Dalma",
+            email: "dalma@email.com",
+            passwordHash: "hashed123", 
+            role: "player"
+        });
+        
         expect(created).toHaveProperty("id");
 
         const found = await userService.getByEmail(newUser.email);
@@ -52,22 +58,22 @@ describe ("PrismaUserService", () => {
         let throwingCall = () => userService.createUser(invalidUser);
 
         // 1. Aserción General: Verifica que rechaza con el mensaje principal
-        expect(throwingCall).toThrow(/Usuario con datos invalidos/);
+        await expect(throwingCall).rejects.toThrow(/Usuario con datos invalidos/);
 
         throwingCall = () => userService.createUser(invalidUser);
-        expect(throwingCall).toThrow(/Invalid email address/);
+        await expect(throwingCall).rejects.toThrow(/Invalid email address/);
         
         // --- Si quieres verificar todas las fallas ---
         throwingCall = () => userService.createUser(invalidUser);
-        expect(throwingCall).toThrow(/Too small: expected string to have >=3 characters/ // Falla 'name'
+        await expect(throwingCall).rejects.toThrow(/Too small: expected string to have >=3 characters/ // Falla 'name'
         );
-        expect(throwingCall).toThrow(/expected string to have >=8 characters/)
+        await expect(throwingCall).rejects.toThrow(/expected string to have >=8 characters/)
     })
 
     test("dont create user without email", async () => {
         const invalidUser = newUserMock({ email: "e"});
         let throwingCall = () => userService.createUser(invalidUser);
-        expect(throwingCall).toThrow(/Invalid email address/);
+        await expect(throwingCall).rejects.toThrow(/Usuario con datos invalidos/);
     })
 
     test("should retrieve a user by ID and return null if not found", async () => {

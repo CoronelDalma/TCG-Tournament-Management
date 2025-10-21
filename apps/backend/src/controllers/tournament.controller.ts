@@ -1,8 +1,9 @@
 import { TournamentCredentials, TournamentService, UserService, createTournament, registerPlayerInTournament, getAllTournaments } from "domain/src";
 import { Request, Response } from "express";
-import { PrismaTournamentService } from "src/services/PrismaTournamentService";
-import { PrismaUserService } from "src/services/PrismaUserService";
+import { PrismaTournamentService } from "../services/PrismaTournamentService";
+import { PrismaUserService } from "../services/PrismaUserService";
 import { AuthRequest } from "../middlewares/AuthMiddleware"
+import { _ } from "vitest/dist/chunks/reporters.d.BFLkQcL6";
 
 const tournamentService: TournamentService = new PrismaTournamentService();
 const userService: UserService = new PrismaUserService();
@@ -11,11 +12,15 @@ export async function createTournamentController( req: AuthRequest, res: Respons
     console.log("createTournament endpoint hit");
 
     const requesterId = req.userId;
-
     if (!requesterId || !req.body.name || !req.body.maxPlayers || !req.body.format || !req.body.startDate) {
         return res.status(400).json({ error: "Missing required fields (name, maxPlayers, format, startDate)." });
     }
-
+        console.log("name: ", req.body.name);
+        console.log("name: ", req.body.maxPlayers);
+        console.log("name: ", req.body.format);
+        console.log("name: ", req.body.startDate);
+        console.log("useriD. ", requesterId);
+        console.log("role: ", req.body.role)
     try {
         const startDate = new Date(req.body.startDate);
         const payloadData: TournamentCredentials = {
@@ -39,7 +44,7 @@ export async function createTournamentController( req: AuthRequest, res: Respons
     } catch ( error: any ) {
         console.error("Error creating tournament:", error.message);
         
-        if (error.message.includes("Permission denied")) {
+        if (error.message.includes("User is not authorized to create tournaments.")) {
             return res.status(403).json({ error: error.message });
         }
         if (error.message.includes("Tournament must allow") || error.message.includes("Organizer ID")) {
@@ -70,7 +75,7 @@ export async function registerPlayerController(req: AuthRequest, res: Response) 
                 playerId: playerId
             }
         });
-
+        console.log(updatedTournament);
         res.status(200).json(updatedTournament);
     } catch (error: any) {
         console.error("Error registering player:", error.message);

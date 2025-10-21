@@ -1,14 +1,57 @@
-import { describe, test, expect, beforeEach, beforeAll, afterAll} from "vitest"
+import { vi, describe, test, expect, beforeEach, beforeAll, afterAll} from "vitest"
 import request from "supertest"
 import app from "../server"
-import { UserRole, TournamentStatus } from "domain/src";
+import { UserRole, TournamentStatus, User } from "domain/src";
 import { PrismaClient } from "@prisma/client"
 import { AuthServiceImplementation } from "../services/AuthServise";
+import { PrismaUserService } from "src/services/PrismaUserService";
 
 const urlTournament = "/api/tournaments";
 
 const prisma = new PrismaClient();
 const authService = new AuthServiceImplementation();
+const userService = new PrismaUserService();
+
+//    MOCKS   
+const ADMIN_ID = "b06cc353-1631-4a3b-b843-cb8a00ab342c";
+const ORGANIZER_ID = "d47536a6-ce4f-45d2-949b-b2f99887993c";
+vi.spyOn(userService, "getById").mockImplementation(async (id: string) => {
+  // Devuelve el usuario correcto según el ID
+    const usersById: Record<string, User> = {
+        "2154e371-30fc-422d-b757-84de252bdc94": {
+        id: "2154e371-30fc-422d-b757-84de252bdc94",
+        name: "admin_creator@test.com",
+        email: "admin_creator@test.com",
+        passwordHash: "hashed_pwd",
+        role: UserRole.ADMIN
+        },
+        "d4e32eae-118c-497a-9521-9df72705cc26": {
+        id: "d4e32eae-118c-497a-9521-9df72705cc26",
+        name: "player_creator@test.com",
+        email: "player_creator@test.com",
+        passwordHash: "hashed_pwd",
+        role: UserRole.PLAYER
+        },
+        "be73ec5f-36c1-4192-a995-a8755239152c": {
+        id: "be73ec5f-36c1-4192-a995-a8755239152c",
+        name: "player_two@test.com",
+        email: "player_two@test.com",
+        passwordHash: "hashed_pwd",
+        role: UserRole.PLAYER
+        },
+        "d29079c0-a431-4a62-9d34-7480f550a5d4": {
+        id: "d29079c0-a431-4a62-9d34-7480f550a5d4",
+        name: "organizer_creator@test.com",
+        email: "organizer_creator@test.com",
+        passwordHash: "hashed_pwd",
+        role: UserRole.ORGANIZER
+        }
+    };
+
+    return usersById[id] ?? null;
+});
+
+
 
 const ADMIN_CREDENTIALS = { email: 'admin_creator@test.com', password: 'secure_admin_pwd', role: UserRole.ADMIN };
 const ORGANIZER_CREDENTIALS = { email: 'organizer_creator@test.com', password: 'secure_organizer_pwd', role: UserRole.ORGANIZER };
@@ -27,6 +70,7 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
     let adminToken: string;
     let playerOneToken: string;
     let playerTwoToken: string;
+    let adminId: string;
     let organizerId: string;
     let playerOneId: string;
     let playerTwoId: string;
@@ -34,25 +78,26 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
     
     // Función auxiliar para crear y obtener tokens
     const createAndLogin = async (credentials: any, role: UserRole) => {
-        const userId = `${role}-${credentials.email.split('@')[0]}-id`;
         const passwordHash = await authService.hashPassword(credentials.password);
-        
+        let created: User | undefined = undefined;
+
         try {
-            await prisma.user.create({
-                data: {
-                    id: userId,
+            created = await userService.createUser({
                     name: credentials.email,
                     email: credentials.email,
                     passwordHash: passwordHash,
                     role: role
-                }
             });
         } catch (e) {
-            // Usuario ya existe, ignorar
+            throw e;
         }
 
-        const token = await authService.generateToken(userId, role);
-        return { userId, token };
+        if (!created) {
+            throw new Error("User creation failed");
+        }
+        const token = await authService.generateToken(created.id, role);
+        //const token = await authService.generateToken(ADMIN_ID, role);
+        return { userId: created.id, token };
     };
 
     beforeAll(async () => {
@@ -67,6 +112,7 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         adminToken = admin.token;
         playerOneToken = playerOne.token;
         playerTwoToken = playerTwo.token;
+        adminId =admin.userId;
         playerOneId = playerOne.userId;
         playerTwoId = playerTwo.userId;
         organizerId = organizer.userId;
@@ -75,9 +121,20 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         const creationRes = await request(app)
             .post(urlTournament)
             .set('Authorization', `Bearer ${adminToken}`)
-            .send(BASE_TOURNAMENT_PAYLOAD);
+            .send({
+                name: "Weekly Standard Tournament",
+                description: "Standard competitive event.",
+                maxPlayers: 2,
+                startDate: new Date(Date.now() + 86400000).toISOString(),
+                format: "Standard",
+                organizedId: organizerId
+            });
 
+        if (creationRes.status !== 201){
+            throw new Error(`Falló la creación del torneo: ${creationRes.status} - ${creationRes.body?.error || 'Sin mensaje'}`);
+        }
         tournamentId = creationRes.body.id;
+        
     });
 
     beforeEach(async () => {
@@ -85,7 +142,7 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         await prisma.tournament.update({
             where: { id: tournamentId },
             data: { 
-                status: 'PENDING',
+                status: 'pending' as any,
                 registeredPlayersIds: { set: [] } // Limpia la relación Many-to-Many
             }
         });
@@ -101,10 +158,6 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         await prisma.$disconnect();
     });
 
-    // -------------------------------------------------------------------------
-    // TEST DE CREACIÓN (Se mantienen del paso anterior)
-    // -------------------------------------------------------------------------
-
     test("should allow an ADMIN to create a valid tournament (initial check)", async() => {
         const res = await request(app)
             .post(urlTournament)
@@ -114,8 +167,8 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         expect(res.status).toBe(201);
         expect(res.body).toHaveProperty("id");
         expect(res.body.name).toBe("New Tournament Name");
-        expect(res.body.registeredPlayerIds).toEqual([]); // Array vacío en el Dominio
-        expect(res.body.organizerId).toBe(`${UserRole.ADMIN}-admin_creator-id`); 
+        expect(res.body.registeredPlayersIds).toEqual([]); 
+        expect(res.body.organizerId).toBe(`${adminId}`); 
     });
 
     test("should reject a PLAYER from creating a tournament (403 Forbidden)", async() => {
@@ -123,9 +176,8 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
             .post(urlTournament)
             .set('Authorization', `Bearer ${playerOneToken}`)
             .send(BASE_TOURNAMENT_PAYLOAD);
-
         expect(res.status).toBe(403);
-        expect(res.body.error).toContain("Permission denied");
+        expect(res.body.error).toContain("User is not authorized to create tournaments.");
     });
 
     // -------------------------------------------------------------------------
@@ -139,7 +191,7 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
 
         expect(res.status).toBe(200);
         // Debe haber 1 jugador registrado (el ID de Player 1)
-        expect(res.body.registeredPlayerIds).toEqual([playerOneId]); 
+        expect(res.body.registeredPlayersIds).toEqual([playerOneId]); 
         expect(res.body.maxPlayers).toBe(2);
         expect(res.body.status).toBe(TournamentStatus.PENDING);
     });
@@ -156,7 +208,8 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
             .post(`${urlTournament}/${tournamentId}/register`)
             .set('Authorization', `Bearer ${playerOneToken}`);
 
-        expect(res.status).toBe(404); // El error 404/400 es válido si el use case lo lanza
+        //El error 404/400 es válido si el use case lo lanza
+        expect([400, 404]).toContain(res.status);
         expect(res.body.error).toContain("already registered");
     });
     
@@ -194,7 +247,7 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         // 1. Cambiar el estado del torneo a ACTIVE
         await prisma.tournament.update({
             where: { id: tournamentId },
-            data: { status: "ACTIVE" } 
+            data: { status: TournamentStatus.ACTIVE } 
         });
 
         // 2. Intentar registrar (debe fallar)

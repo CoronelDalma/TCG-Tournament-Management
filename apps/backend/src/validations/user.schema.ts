@@ -1,7 +1,9 @@
 import { z } from 'zod';
-import {UserRole} from 'domain/src/entities/User'
+import {UserRole} from 'domain/src'
 
-const roleValues = Object.values(UserRole) as [UserRole, ...UserRole[]];
+//const roleValues = Object.values(UserRole) as [UserRole, ...UserRole[]];
+const roleValues = ['admin', 'organizer', 'player'] as const;
+const roleValues2 = ['ADMIN', 'ORGANIZER', 'PLAYER'] as const;
 
 export const UserSchema = z.object({
     id: z.uuid(),

@@ -19,14 +19,15 @@ export async function createTournament({dependencies, payload}: CreateTournament
     const { tournamentService, userService } = dependencies;
     const { data, requesterId } = payload.data;
     const user = await userService.getById(requesterId);
-
+   
+    console.log("USer id: ", requesterId)
+    console.log("Email: ", user?.email)
     if (!user) {
         throw new Error("Requester user not found.");
     }
 
     if (!canManageTournament(user.role)) {
-        console.log(user.role);
-        console.log(!canManageTournament(user.role))
+        console.log(" -----------------ACAAAAA DETECTEEE QUE NO PODES CREAR")
         throw new Error('User is not authorized to create tournaments.');
     }
 

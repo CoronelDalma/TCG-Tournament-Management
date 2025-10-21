@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { NewTournament, Tournament, TournamentStatus } from "domain/entities";
+import { NewTournament, Tournament, TournamentStatus } from "domain/src";
 import { TournamentService } from "domain/src";
 
 const prisma = new PrismaClient();
@@ -19,6 +19,8 @@ function mapPrismaTournamentToDomain(prismaTournament: any): Tournament {
 }
 export class PrismaTournamentService implements TournamentService {
     async createTournament(data: NewTournament): Promise<Tournament> {
+        console.log("en prisma: ");
+        console.log(data);
         const createdTournament = await prisma.tournament.create({
             data: {
                 name: data.name,
@@ -27,7 +29,7 @@ export class PrismaTournamentService implements TournamentService {
                 maxPlayers: data.maxPlayers,
                 startDate: data.startDate,
                 format: data.format,
-                status: 'PENDING', 
+                status: TournamentStatus.PENDING,
             },
             include: { registeredPlayersIds: true}
         });
@@ -56,7 +58,7 @@ export class PrismaTournamentService implements TournamentService {
         let playerUpdate: any = {};
 
         if (registeredPlayersIds !== undefined) {
-            playerUpdate.players = {
+            playerUpdate.registeredPlayersIds = {
                 set: registeredPlayersIds.map(playerId => ({ id: playerId}))
             }
         }

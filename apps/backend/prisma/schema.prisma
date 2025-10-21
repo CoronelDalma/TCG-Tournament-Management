@@ -15,24 +15,25 @@ datasource db {
 
 
 enum UserRole {
-  ADMIN
-  ORGANIZER
-  PLAYER
+  admin
+  organizer
+  player
 }
 
 enum TournamentStatus {
-  PENDING
-  ACTIVE
-  COMPLETED
-  CANCELED
+  pending
+  active
+  completed
+  canceled
 }
+
 
 model User {
   id            String @id @default(uuid())
   name          String
   email         String @unique
   passwordHash  String
-  role          UserRole  @default(PLAYER)
+  role          UserRole  @default(player)
   tournaments   Tournament[]
   organizedTournaments  Tournament[]      @relation("OrganizedTournaments")
 }
@@ -45,7 +46,7 @@ model Tournament {
   organizer     User              @relation("OrganizedTournaments", fields: [organizedId], references: [id])
   maxPlayers    Int
   startDate     DateTime
-  status        TournamentStatus @default(PENDING)
+  status        TournamentStatus @default(pending)
   registeredPlayersIds    User[]
   format        String
 

@@ -10,7 +10,6 @@ const authService = new AuthServiceImplementation();
 
 export class RegisterServiceImplementation implements RegisterUserService {
     async register(userData: RegisterUserRequest): Promise<User> {
-        console.log("registrando usuario");
         const existingUser = await userService.getByEmail(userData.email);
 
         if (existingUser) {
@@ -24,10 +23,7 @@ export class RegisterServiceImplementation implements RegisterUserService {
             passwordHash: passwordHash,
             role: userData.role
         };
-
-        console.log(passwordHash);
         const createdUser = userService.createUser(newUser);
-        console.log(createdUser);
 
         return createdUser;
     }

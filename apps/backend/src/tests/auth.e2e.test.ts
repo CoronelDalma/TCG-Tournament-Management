@@ -2,17 +2,20 @@ import { describe, test, expect, beforeEach, beforeAll,afterAll} from "vitest"
 import request from "supertest"
 import app from "../server"
 import { User, UserRole } from "domain/src/entities";
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, UserRole as PrismaUserRole } from "@prisma/client"
 
 const urlRegister= "/api/auth/register";
 const urlLogin = "/api/auth/login";
 
 /// ----------mocks
+const PLAYER_ROLE = "PLAYER" as UserRole;
+const PRISMA_ROLE_PLAYER = PrismaUserRole.PLAYER;
+
 const validUser: Omit<User, 'id'> = {
     name: 'Mock User',
     email: 'valid@email.com',
     passwordHash: 'hashedpassword', // aaaaah me equivoque de nombreeeee . debo retocar
-    role: UserRole.PLAYER,
+    role: PLAYER_ROLE,
 }
 
 export function newUserMock(opts?: Partial<Omit<User, 'id'>>): Omit<User, 'id'> {
@@ -44,7 +47,7 @@ describe("Auth endpoints", () => {
                 name: 'Login Tester',
                 email: LOGIN_EMAIL,
                 passwordHash: 'hashedPassword', // Usamos la versión hasheada
-                role: UserRole.PLAYER,
+                role: PRISMA_ROLE_PLAYER,
             }
         });
     });
@@ -59,7 +62,7 @@ describe("Auth endpoints", () => {
             name: "Dalma",
             email: "dalma@email.com",
             password: "secure123",
-            role: "player"
+            role: "player" as UserRole
         });
 
         expect(res.status).toBe(201);

@@ -1,7 +1,8 @@
-import { Tournament, NewTournament, TournamentStatus } from "../../entities";
+import { Tournament, NewTournament, TournamentStatus, TournamentCredentials } from "../../entities";
 
 export interface TournamentService {
     createTournament(data: NewTournament): Promise<Tournament>;
+    //createTournament(data: TournamentCredentials): Promise<Tournament>;
     getTournamentById(id: string): Promise<Tournament | null>
     getAllTournamentByOrganizerId(organizerId: string): Promise<Tournament[]>
     updateTournamentById(id: string, updateDAta: Partial<Tournament>): Promise<Tournament>;

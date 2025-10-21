@@ -1,4 +1,4 @@
-import { NewUser, UserService, User, UserRole } from "../../../../../domain/dist";
+import { NewUser, UserService, User, UserRole } from "domain/src";
 import { vi } from "vitest";
 
 export const userServiceMock: UserService = {
@@ -12,13 +12,13 @@ export const userServiceMock: UserService = {
                 name: "Existing User",
                 email: "test@email.com",
                 passwordHash: "hashedpassword",
-                role: "player" as UserRole
+                role: "player"
             } as User;
-        }   
+        }
         return null;
     }),
     getById: vi.fn(async (id: string) => {
-        if (id === "existing-user-id") {    
+        if (id === "existing-user-id") {
             return {
                 id: "existing-user-id",
                 name: "Existing User",
@@ -26,16 +26,18 @@ export const userServiceMock: UserService = {
                 passwordHash: "hashedpassword",
                 role: "player" as UserRole
             } as User;
-        }   
+        }
         return null;
     }),
     getUserRole: vi.fn(async (id: string) => {
-        if (id === "existing-user-id") {    
+        if (id === "existing-user-id") {
             return "player";
-            }; 
+        };
         return null;
     }),
     delete: vi.fn(async (id: string) => {
-        
-    })
+    }),
+    update: function (userId: string, updateData: Partial<User>): Promise<User> {
+        throw new Error("Function not implemented.");
+    }
 }
