@@ -102,10 +102,10 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
 
         if (prismaUser && prismaUser.passwordHash !== passwordHash) {
              // Si existe pero la contraseña no coincide (limpieza fallida), actualizamos.
-             prismaUser = await prisma.user.update({
+            prismaUser = await prisma.user.update({
                 where: { id: prismaUser.id },
                 data: { passwordHash: passwordHash, role: role }
-             });
+            });
         } else if (!prismaUser) {
             // Si no existe, creamos.
             prismaUser = await prisma.user.create({
@@ -160,37 +160,8 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
             playerTwoId = playerTwo.userId;
             organizerId = organizer.userId;
         }, 5, 200);
-        
-        // Setup de usuarios
-        // const admin = await createAndLogin(ADMIN_CREDENTIALS, UserRole.ADMIN);
-        // const playerOne = await createAndLogin(PLAYER_CREDENTIALS, UserRole.PLAYER);
-        // const playerTwo = await createAndLogin(PLAYER_TWO_CREDENTIALS, UserRole.PLAYER);
-        // const organizer = await createAndLogin(ORGANIZER_CREDENTIALS, UserRole.ORGANIZER);
-        
-        // adminToken = admin.token;
-        // playerOneToken = playerOne.token;
-        // playerTwoToken = playerTwo.token;
-        // adminId =admin.userId;
-        // playerOneId = playerOne.userId;
-        // playerTwoId = playerTwo.userId;
-        // organizerId = organizer.userId;
-        
-        //await warmUpUserCache(adminId);
     });
 
-    // beforeEach(async () => {
-
-    //     const creationRes = await request(app)
-    //         .post(urlTournament)
-    //         .set('Authorization', `Bearer ${adminToken}`)
-    //         .send(BASE_TOURNAMENT_PAYLOAD(organizerId));
-
-    //     if (creationRes.status !== 201){
-    //         throw new Error(`Falló la creación del torneo: ${creationRes.status} - ${creationRes.body?.error || 'Sin mensaje'}`);
-    //     }
-    //     // Asignar el ID del torneo recién creado a la variable de ámbito.
-    //     tournamentId = creationRes.body.id; 
-    // });
     beforeEach(async () => {
         // [CAMBIO CLAVE]: Envolvemos la creación del torneo en un retry.
         // Esto captura específicamente el error 500 causado por el Admin no encontrado.
@@ -202,7 +173,7 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
 
             // Si el error es el de sincronización, lanzamos un error específico para forzar el retry
             if (res.status === 500 && res.body?.error.includes("Requester user not found")) {
-                 throw new Error("Requester user not found (Sync Issue)");
+                throw new Error("Requester user not found (Sync Issue)");
             }
             if (res.status !== 201) {
                 // Si es un error de lógica, lo lanzamos para detener el test
