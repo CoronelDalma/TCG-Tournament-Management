@@ -19,8 +19,7 @@ function mapPrismaTournamentToDomain(prismaTournament: any): Tournament {
 }
 export class PrismaTournamentService implements TournamentService {
     async createTournament(data: NewTournament): Promise<Tournament> {
-        console.log("en prisma: ");
-        console.log(data);
+
         const createdTournament = await prisma.tournament.create({
             data: {
                 name: data.name,
@@ -45,7 +44,7 @@ export class PrismaTournamentService implements TournamentService {
     async getAllTournamentByOrganizerId(organizerId: string): Promise<Tournament[]> {
         const prismaTournaments = await prisma.tournament.findMany({
             where: {
-                status: status as any
+                organizedId: organizerId
             },
             include: {registeredPlayersIds: true}
         });
@@ -75,11 +74,22 @@ export class PrismaTournamentService implements TournamentService {
         return mapPrismaTournamentToDomain(updatedTournament);
     }
 
-    deleteById(id: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async deleteById(id: string): Promise<void> {
+        await prisma.tournament.delete({
+            where: { id }, 
+            include: {registeredPlayersIds: true}
+        });
     }
-    getAllByStatus(status: TournamentStatus): Promise<Tournament[]> {
-        throw new Error("Method not implemented.");
+    
+    async getAllByStatus(status: TournamentStatus): Promise<Tournament[]> {
+        const prismaTournaments = await prisma.tournament.findMany({
+            where: {
+                status: status
+            },
+            include: {registeredPlayersIds: true}
+        });
+
+        return prismaTournaments.map(mapPrismaTournamentToDomain);
     }
     
 }
