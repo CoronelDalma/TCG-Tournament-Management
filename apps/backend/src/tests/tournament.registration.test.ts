@@ -17,11 +17,13 @@ const ORGANIZER_CREDENTIALS = { email: 'organizer_creator@test.com', password: '
 const PLAYER_CREDENTIALS = { email: 'player_creator@test.com', password: 'secure_player_pwd', role: UserRole.PLAYER };
 const PLAYER_TWO_CREDENTIALS = { email: 'player_two@test.com', password: 'secure_player_pwd', role: UserRole.PLAYER };
 const PLAYER_THREE_EMAIL = 'player_three@test.com'; // Email temporal
+const PLAYER_FOUR_CREDENTIALS =  { email: 'player_four@test.com', password: 'secure_player_pwd', role: UserRole.PLAYER };
+const PLAYER_FIVE_CREDENTIALS = { email: 'player_five@test.com', password: 'secure_player_pwd', role: UserRole.PLAYER };
 
-const BASE_TOURNAMENT_PAYLOAD = (organizerId: string) => ({
+const BASE_TOURNAMENT_PAYLOAD = (organizerId: string, maxPlayers: number = 2) => ({
     name: "Weekly Standard Tournament",
     description: "Standard competitive event.",
-    maxPlayers: 2,
+    maxPlayers: maxPlayers,
     startDate: new Date(Date.now() + 86400000).toISOString(), // Mañana
     format: "Standard",
     organizedId: organizerId
@@ -45,16 +47,21 @@ async function retryOperation<T>(operation: () => Promise<T>, maxAttempts: numbe
     throw new Error("Retry function failed unexpectedly.");
 }
 
-describe("Tournament Endpoints (Creation & Registration)", () => {
+describe("Tournament Endpoints (Creation , Registration & Start)", () => {
     let adminToken: string;
+    let organizerToken: string;
     let playerOneToken: string;
     let playerTwoToken: string;
+    let playerThreeToken: string;
+    let playerFourToken: string;
     let adminId: string;
     let organizerId: string;
     let playerOneId: string;
     let playerTwoId: string;
+    let playerThreeId: string;
+    let playerFourId: string;
     let tournamentId: string;
-    
+    let startTournamentId: string;
 
     const createAndLogin = async (credentials: any, role: UserRole) => {
         let passwordHash =await authService.hashPassword(credentials.password);
@@ -91,48 +98,6 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         return { userId: createdUser.id, token };
     };
 
-    //---------------------
-    const createAndLogin2 = async (credentials: any, role: UserRole) => {
-        const passwordHash = await authService.hashPassword(credentials.password);
-        
-        // Estrategia de doble verificación: buscamos primero.
-        let prismaUser = await prisma.user.findFirst({
-            where: { email: credentials.email }
-        });
-
-        if (prismaUser && prismaUser.passwordHash !== passwordHash) {
-             // Si existe pero la contraseña no coincide (limpieza fallida), actualizamos.
-            prismaUser = await prisma.user.update({
-                where: { id: prismaUser.id },
-                data: { passwordHash: passwordHash, role: role }
-            });
-        } else if (!prismaUser) {
-            // Si no existe, creamos.
-            prismaUser = await prisma.user.create({
-                data: {
-                    email: credentials.email,
-                    name: credentials.email,
-                    passwordHash: passwordHash,
-                    role: role, 
-                },
-            });
-        }
-
-        // Si por alguna razón el usuario es null (lo cual no debería pasar)
-        if (!prismaUser) throw new Error(`FATAL: Could not create or find user ${credentials.email}`);
-
-        const createdUser: User = {
-            id: prismaUser.id,
-            name: prismaUser.name,
-            email: prismaUser.email,
-            passwordHash: prismaUser.passwordHash,
-            role: prismaUser.role.toLowerCase() as UserRole, 
-        };
-
-        const token = await authService.generateToken(createdUser.id, createdUser.role);
-        return { userId: createdUser.id, token };
-    };
-
     beforeAll(async () => {
         await prisma.$connect();
         await prisma.tournament.deleteMany({});
@@ -140,7 +105,10 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
             ADMIN_CREDENTIALS.email, 
             PLAYER_CREDENTIALS.email, 
             PLAYER_TWO_CREDENTIALS.email, 
-            ORGANIZER_CREDENTIALS.email
+            ORGANIZER_CREDENTIALS.email,
+            PLAYER_FOUR_CREDENTIALS.email,
+            PLAYER_FIVE_CREDENTIALS.email,
+            
         ];
         await prisma.user.deleteMany({
             where: { email: { in: emailsToClean }}
@@ -151,15 +119,28 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
             const playerOne = await createAndLogin(PLAYER_CREDENTIALS, UserRole.PLAYER);
             const playerTwo = await createAndLogin(PLAYER_TWO_CREDENTIALS, UserRole.PLAYER);
             const organizer = await createAndLogin(ORGANIZER_CREDENTIALS, UserRole.ORGANIZER);
-            
+            const playerThree = await createAndLogin(PLAYER_FOUR_CREDENTIALS,UserRole.PLAYER);
+            const playerFour = await createAndLogin(PLAYER_FIVE_CREDENTIALS, UserRole.PLAYER);
             adminToken = admin.token;
+            organizerToken = organizer.token;
             playerOneToken = playerOne.token;
             playerTwoToken = playerTwo.token;
+            playerThreeToken = playerThree.token;
+            playerFourToken = playerFour.token;
             adminId = admin.userId;
             playerOneId = playerOne.userId;
             playerTwoId = playerTwo.userId;
+            playerThreeId = playerThree.userId;
+            playerThreeId = playerThree.userId;
             organizerId = organizer.userId;
         }, 5, 200);
+
+        // For Start tournament
+        const newTournament = await request(app)
+            .post(urlTournament)
+            .set('Authorization', `Bearer ${organizerToken}`)
+            .send(BASE_TOURNAMENT_PAYLOAD(organizerId, 8));
+        startTournamentId = newTournament.body.id;
     });
 
     beforeEach(async () => {
@@ -199,7 +180,9 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
             PLAYER_CREDENTIALS.email, 
             PLAYER_TWO_CREDENTIALS.email, 
             ORGANIZER_CREDENTIALS.email,
-            PLAYER_THREE_EMAIL 
+            PLAYER_THREE_EMAIL ,
+            PLAYER_FOUR_CREDENTIALS.email,
+            PLAYER_FIVE_CREDENTIALS.email
         ];
         //await prisma.tournament.deleteMany({});
         await prisma.user.deleteMany({
@@ -208,6 +191,9 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         await prisma.$disconnect();
     });
 
+    // -------------------------------------------------------------------------
+    // ✅   TEST CREACION DE TORNEO
+    // -------------------------------------------------------------------------
     test("should allow an ADMIN to create a valid tournament (initial check)", async() => {
         const res = await request(app)
             .post(urlTournament)
@@ -226,6 +212,24 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         }
     });
 
+    test("should allow an ORGANIZER to create a valid tournament (initial check)", async() => {
+        const res = await request(app)
+            .post(urlTournament)
+            .set('Authorization', `Bearer ${organizerToken}`)
+            .send({...BASE_TOURNAMENT_PAYLOAD(organizerId), name: "New Tournament Name"});
+
+        expect(res.status).toBe(201);
+        expect(res.body).toHaveProperty("id");
+        expect(res.body.name).toBe("New Tournament Name");
+        expect(res.body.registeredPlayersIds).toEqual([]); 
+        expect(res.body.organizerId).toBe(`${organizerId}`); 
+
+        // Limpieza manual del torneo creado en este test (aparte del beforeEach/afterEach)
+        if (res.body.id) {
+            await prisma.tournament.delete({ where: { id: res.body.id } });
+        }
+    });
+
     test("should reject a PLAYER from creating a tournament (403 Forbidden)", async() => {
         const res = await request(app)
             .post(urlTournament)
@@ -236,7 +240,7 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
     });
 
     // -------------------------------------------------------------------------
-    // ✅ NUEVOS TESTS DE REGISTRO DE JUGADORES
+    // ✅ REGISTRO DE JUGADORES
     // -------------------------------------------------------------------------
 
     test("should allow a player to register in a PENDING tournament", async() => {
@@ -313,4 +317,149 @@ describe("Tournament Endpoints (Creation & Registration)", () => {
         expect(res.status).toBe(400);
         expect(res.body.error).toContain("Cannot register. Tournament is currently active");
     });
+
+    // -----------------------------------------------------------
+    //      TESTS DE INICIO DEL TORNEO 
+    // ----------------------------------------------------------
+    const urlRegisterUserToTournament = (idTournament: string) => `${urlTournament}/${idTournament}/register`;
+    const urlStartTournament = (tournamentId: string) => `${urlTournament}/${tournamentId}/start`;
+
+    test ("should reject starting a tournament if user is Player ( 403 Forbidden", async () => {
+        // Register 3 players and the organizer in the tournament
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${organizerToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerThreeToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerFourToken}`);
+
+        const res = await request(app).post(urlStartTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
+
+        expect(res.status).toBe(403);
+        expect(res.body.error).toContain("User is not authorized to create tournaments.");
+    })
+
+    test("should allow ADMIN to successfully start a 5-player tournament by generating a bracket with byes", async () => {
+        // Register 5 players
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${organizerToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerThreeToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerFourToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${adminToken}`);
+    
+        // Start tournament
+        const res = await request(app)
+                .post(urlStartTournament(startTournamentId))
+                .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe(TournamentStatus.ACTIVE);
+
+        const rounds = res.body.rounds;
+        expect(rounds.length).toBe(3); // Log2(8) = 3 rondas (R1, Semis, Final)
+            
+        // Round 1 (4 matches totales para 8 slots)
+        expect(rounds[0].matches.length).toBe(4); 
+            
+        // Round 2 (2 matches) - Esperando ganadores
+        expect(rounds[1].matches.length).toBe(2);
+            
+        // Round 3 (1 match) - Final
+        expect(rounds[2].matches.length).toBe(1);
+
+        // Verificamos que haya 5 jugadores involucrados en la primera ronda (3 byes, 1 partido real)
+        let actualPlayersInR1 = 0;
+        let byesCount = 0;
+        rounds[0].matches.forEach((m: any) => {
+            if (m.playerAId && m.playerBId) {
+                actualPlayersInR1 += 2;
+            } else if (m.playerAId || m.playerBId) {
+                actualPlayersInR1 += 1;
+                byesCount += 1; // Un bye se cuenta cuando un slot es null
+            }
+        });
+        // Total de jugadores = 5. Como el bracket es de 8, hay 3 byes.
+        expect(actualPlayersInR1).toBe(5); 
+        expect(byesCount).toBe(3); 
+    })
+
+    test("should allow ADMIN to successfully start a 4-player tournament by generating a bracket with byes", async () => {
+        // Register 4 players
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${organizerToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerThreeToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerFourToken}`);
+    
+        // Start tournament
+        const res = await request(app)
+                .post(urlStartTournament(startTournamentId))
+                .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe(TournamentStatus.ACTIVE);
+
+        const rounds = res.body.rounds;
+        expect(rounds.length).toBe(2); // Log2(8) = 2 rondas
+            
+        // Round 1 
+        expect(rounds[0].matches.length).toBe(2);
+        expect(rounds[0].matches[0].playerAId).not.toBeNull();
+        expect(rounds[0].matches[0].playerBId).not.toBeNull(); 
+            
+        // Final (Ronda 2)
+        expect(rounds[1].matches.length).toBe(1);
+        expect(rounds[1].matches[0].playerAId).toBeNull(); // Esperando ganadores
+        expect(rounds[1].matches[0].previousMatchAId).not.toBeNull();
+
+        // Verificamos que haya 4 jugadores involucrados en la primera ronda
+        let actualPlayersInR1 = 0;
+        let byesCount = 0;
+        rounds[0].matches.forEach((m: any) => {
+            if (m.playerAId && m.playerBId) {
+                actualPlayersInR1 += 2;
+            } else if (m.playerAId || m.playerBId) {
+                actualPlayersInR1 += 1;
+                byesCount += 1; // Un bye se cuenta cuando un slot es null
+            }
+        });
+        // Total de jugadores = 4. Como el bracket es de 8, hay 2 byes.
+        expect(actualPlayersInR1).toBe(4); 
+        expect(byesCount).toBe(2); 
+    })
+
+    test("should allow ORGANIZER to successfully start a 4-player tournament", async () => {
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${organizerToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerThreeToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerFourToken}`);
+    
+        // Start tournament
+        const res = await request(app)
+                .post(urlStartTournament(startTournamentId))
+                .set('Authorization', `Bearer ${organizerToken}`);
+        
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe(TournamentStatus.ACTIVE);
+        expect(res.body.rounds.length).toBe(2);
+    })
+
+    test("should reject starting a tournament if status is already ACTIVE", async () => {
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${organizerToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerThreeToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerFourToken}`);
+    
+        // Start tournament
+        const res = await request(app)
+                .post(urlStartTournament(startTournamentId))
+                .set('Authorization', `Bearer ${organizerToken}`);
+        expect(res.status).toBe(200);
+        
+        // Starting again
+        const res2 = await request(app)
+            .post(urlStartTournament(startTournamentId))
+            .set('Authorization', `Bearer ${organizerToken}`);
+
+        expect(res2.status).toBe(400);
+        expect(res2.body.error).toContain("status PENDING to be started");
+    })
+    
 });
