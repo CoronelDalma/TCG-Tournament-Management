@@ -35,10 +35,6 @@ export class PrismaUserService implements UserService {
         return mapPrismaUserToDomain(prismaUser);
     }
 
-    getUserRole(userId: string): Promise<string | null> {
-        throw new Error("Method not implemented get User role.");
-    }
-
     async createUser(data: NewUser): Promise<User> {
         const validationSchema = UserSchema.omit({ id: true });
         const validation = validationSchema.safeParse(data);
