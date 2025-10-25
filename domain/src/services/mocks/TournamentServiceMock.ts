@@ -38,22 +38,54 @@ export const TournamentServiceMock: TournamentService = {
     getTournamentById: async (id: string) => {
         return existingTournaments.find(tournament => tournament.id === id) || null;
     },
-    getAllTournamentByOrganizerId: function (organizerId: string): Promise<Tournament[]> {
-        throw new Error("Function not implemented.");
+    getAllTournamentByOrganizerId: async function (organizerId: string): Promise<Tournament[]> {
+        return existingTournaments.filter((tournament) => tournament.organizerId == organizerId);
     },
-    updateTournamentById: function (id: string, updateDAta: Partial<Tournament>): Promise<Tournament> {
-        throw new Error("Function not implemented.");
+    updateTournamentById: async function (id: string, updateData: Partial<Tournament>): Promise<Tournament> {
+        const index = existingTournaments.findIndex(t => t.id === id);
+        if (index === -1) {
+            throw new Error(`Tournament with id ${id} not found`);
+        }
+
+        existingTournaments[index] = {
+            ...existingTournaments[index],
+            ...updateData
+        } as Tournament;
+
+        return existingTournaments[index];
     },
-    deleteById: function (id: string): Promise<void> {
-        throw new Error("Function not implemented.");
+    deleteById: async function (id: string): Promise<void> {
+        const index = existingTournaments.findIndex(t => t.id === id);
+        if (index === -1) {
+            throw new Error(`Tournament with id ${id} not found`);
+        }
+        existingTournaments.splice(index, 1);
     },
     getAllByStatus: async function (status: TournamentStatus): Promise<Tournament[]> {
         return existingTournaments.filter(tournament => tournament.status === status);
     },
     startTournament: function (tournamentId: string, requesterId: string): Promise<Tournament> {
-        throw new Error("Function not implemented.");
+        throw new Error("Function not implemented start tournament------ start.");
     },
     createSwissRoundOne: function (registeredPlayersIds: string[], tournamentId: string): Round {
-        throw new Error("Function not implemented.");
+        // Mock de la lógica del Bracket: devolver una Round válida de mock
+        return {
+            id: 'r-1-mock',
+            tournamentId: tournamentId,
+            roundNumber: 1,
+            isCompleted: false,
+            matches: [
+                // Partida simulada
+                {
+                    id: 'm-1-mock',
+                    tournamentId: tournamentId,
+                    roundNumber: 1,
+                    player1Id: registeredPlayersIds[0] || 'p1',
+                    player2Id: registeredPlayersIds[1] || 'p2',
+                    result: 'pending',
+                    score: '',
+                }
+            ]
+        } as Round;
     }
 }

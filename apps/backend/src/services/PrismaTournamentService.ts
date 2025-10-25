@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { NewTournament, Tournament, TournamentStatus } from "domain/src";
+import { NewTournament, Tournament, TournamentStatus, UserRole } from "domain/src";
 import { TournamentService } from "domain/src";
 
 const prisma = new PrismaClient();
@@ -90,6 +90,10 @@ export class PrismaTournamentService implements TournamentService {
         });
 
         return prismaTournaments.map(mapPrismaTournamentToDomain);
+    }
+
+    async startTournament(tournamentId: string, requesterId: string): Promise<Tournament> {
+        throw new Error("Method not implemented.");
     }
     
 }

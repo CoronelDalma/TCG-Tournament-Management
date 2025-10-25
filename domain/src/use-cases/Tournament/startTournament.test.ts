@@ -1,8 +1,8 @@
 import { describe, test, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest'
 import { startTournament } from './startTournament'
-import { createTournamentMock, resetMockData, TournamentServiceMock } from '../../services/mocks/TournamentServiceMock'
+import { resetMockData, TournamentServiceMock } from '../../services/mocks/TournamentServiceMock'
 import { UserServiceMock } from '../../services/mocks/UserServiceMock';
-import { existingUsers, newUserMock, resetExistingUsers } from '../../entities/mocks/user-mock';
+import { existingUsers, resetExistingUsers } from '../../entities/mocks/user-mock';
 import { Tournament, TournamentStatus, UserRole } from '../../entities';
 
 
@@ -33,12 +33,10 @@ describe('start tournament use case', () => {
                 startDate: new Date(Date.now() + 86400000), // tomorrow
                 format: "STANDART"
         })
- 
-        //vi.spyOn(tournamentService, 'getTournamentById').mockResolvedValue(tournament);
-        //vi.spyOn(userService, 'getById').mockResolvedValue(existingUsers[1]!);
     })
     
     afterAll(() => {
+        resetExistingUsers();
         resetMockData();
     })
 
@@ -101,25 +99,27 @@ describe('start tournament use case', () => {
             ...tournament,
             registeredPlayersIds: ['existing-player-id','existing-player2-id'],
         });
-        console.log(tournament);
-        
-        await expect(startTournament( {
+
+        const res = await startTournament( {
             dependencies: { tournamentService, userService},
             payload: {tournamentId: tournament.id, requesterId: ORGANIZER_ID}
-        })).rejects.toThrow('Permission denied. Only the Admin or the Tournament Organizer can start this tournament.');
+        })
+
+        expect(res).toHaveProperty('rounds');
     })
 
-    // test('should allow the tournament to start if the requester is a ADMIN, the status is pending and has more than 2 registered players', async () => {      
-    //         vi.spyOn(tournamentService, 'getTournamentById').mockResolvedValue({
-    //         ...tournament,
-    //         registeredPlayersIds: ['existing-player-id','existing-player2-id'],
-    //     });
-    //     console.log(tournament);
+    test('should allow the tournament to start if the requester is a ADMIN, the status is pending and has more than 2 registered players', async () => {      
+            vi.spyOn(tournamentService, 'getTournamentById').mockResolvedValue({
+            ...tournament,
+            registeredPlayersIds: ['existing-player-id','existing-player2-id'],
+        });
         
-    //     await expect(startTournament( {
-    //         dependencies: { tournamentService, userService},
-    //         payload: {tournamentId: tournament.id, requesterId: ADMIN_ID}
-    //     })).rejects.toThrow('Permission denied. Only the Admin or the Tournament Organizer can start this tournament.');
-    // })
+        const res = await startTournament( {
+            dependencies: { tournamentService, userService},
+            payload: {tournamentId: tournament.id, requesterId: ADMIN_ID}
+        })
+
+        expect(res).toHaveProperty('rounds');
+    })
 
 })

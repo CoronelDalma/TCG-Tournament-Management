@@ -102,3 +102,39 @@ export async function getTournamentsController( req: Request, res: Response) {
     }
 }
 
+export async function startTournamentController(req: AuthRequest, res: Response) {
+    const playerId = req.userId;
+    const tournamentId = req.params.tournamentId;
+
+    if (!playerId) {
+        return res.status(401).json({ error: "Authentication required." });
+    }
+
+    if (!tournamentId) {
+        return res.status(400).json({ error: "Missing tournamentId parameter." });
+    }
+
+    try {
+        const updatedTournament = await registerPlayerInTournament({
+            dependencies: { tournamentService, userService },
+            payload: {
+                tournamentId: tournamentId,
+                playerId: playerId
+            }
+        });
+        console.log(updatedTournament);
+        res.status(200).json(updatedTournament);
+    } catch (error: any) {
+        console.error("Error registering player:", error.message);
+        
+        if (error.message.includes("not found")) {
+            return res.status(404).json({ error: error.message });
+        }
+        if (error.message.includes("Cannot register") || error.message.includes("already full") || error.message.includes("already registered")) {
+            return res.status(400).json({ error: error.message });
+        }
+
+        res.status(500).json({ error: "Failed to register player due to a server error." });
+    }
+}
+

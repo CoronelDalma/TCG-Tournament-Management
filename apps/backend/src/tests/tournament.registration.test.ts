@@ -397,7 +397,7 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
         expect(res.body.status).toBe(TournamentStatus.ACTIVE);
 
         const rounds = res.body.rounds;
-        expect(rounds.length).toBe(2); // Log2(8) = 2 rondas
+        expect(rounds.length).toBe(2); 
             
         // Round 1 
         expect(rounds[0].matches.length).toBe(2);
@@ -441,6 +441,22 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
         expect(res.body.rounds.length).toBe(2);
     })
 
+    test("should reject start if the tournament is started by an ORGANIZER but is not the tournament organizer ", async () => {
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${organizerToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerThreeToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerFourToken}`);
+    
+        const newOrganizer = await createAndLogin({ email: 'organizer_new@test.com', password: 'secure_organizer_pwd', role: UserRole.ORGANIZER }, UserRole.ORGANIZER)
+        // Start tournament
+        const res = await request(app)
+                .post(urlStartTournament(startTournamentId))
+                .set('Authorization', `Bearer ${newOrganizer.token}`);
+        
+        expect(res.status).toBe(403);
+        await prisma.user.delete({ where: { email: 'organizer_new@test.com' } });
+    })
+
     test("should reject starting a tournament if status is already ACTIVE", async () => {
         await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
         await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${organizerToken}`);
@@ -453,7 +469,7 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
                 .set('Authorization', `Bearer ${organizerToken}`);
         expect(res.status).toBe(200);
         
-        // Starting again
+        // Start again
         const res2 = await request(app)
             .post(urlStartTournament(startTournamentId))
             .set('Authorization', `Bearer ${organizerToken}`);
