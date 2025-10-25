@@ -1,4 +1,4 @@
-import { NewTournament, Tournament, TournamentStatus } from "../../entities";
+import { NewTournament, Round, Tournament, TournamentStatus } from "../../entities";
 import { TournamentService } from "../Tournament/TournamentService";
 
 // mocks
@@ -27,16 +27,16 @@ export const TournamentServiceMock: TournamentService = {
     createTournament: async (data: NewTournament) => {
         const newTournament: Tournament = {
             ...data,
-            id: (existingTournaments.length+1).toString(),
+            id: (existingTournaments.length + 1).toString(),
             status: TournamentStatus.PENDING,
             registeredPlayersIds: [],
             startDate: new Date(),
-        }
+        };
         existingTournaments.push(newTournament);
         return newTournament;
     },
     getTournamentById: async (id: string) => {
-        return existingTournaments.find( tournament => tournament.id === id) || null;
+        return existingTournaments.find(tournament => tournament.id === id) || null;
     },
     getAllTournamentByOrganizerId: function (organizerId: string): Promise<Tournament[]> {
         throw new Error("Function not implemented.");
@@ -48,6 +48,12 @@ export const TournamentServiceMock: TournamentService = {
         throw new Error("Function not implemented.");
     },
     getAllByStatus: async function (status: TournamentStatus): Promise<Tournament[]> {
-        return existingTournaments.filter( tournament => tournament.status === status);
+        return existingTournaments.filter(tournament => tournament.status === status);
+    },
+    startTournament: function (tournamentId: string, requesterId: string): Promise<Tournament> {
+        throw new Error("Function not implemented.");
+    },
+    createSwissRoundOne: function (registeredPlayersIds: string[], tournamentId: string): Round {
+        throw new Error("Function not implemented.");
     }
 }

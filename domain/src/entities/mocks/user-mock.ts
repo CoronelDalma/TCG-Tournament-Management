@@ -25,6 +25,13 @@ export function resetExistingUsers() {
         email: 'player@email.com',
         passwordHash: 'hashedPlayer',
         role: UserRole.PLAYER
+        },
+                {
+        id: 'user-organizer2',
+        name: 'Peter Organizer',
+        email: 'organizer2@email.com',
+        passwordHash: 'hashedOrganizer',
+        role: UserRole.ORGANIZER
         }
     );
 }

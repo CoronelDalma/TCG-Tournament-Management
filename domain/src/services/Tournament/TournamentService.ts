@@ -1,4 +1,4 @@
-import { Tournament, NewTournament, TournamentStatus, TournamentCredentials } from "../../entities";
+import { Tournament, NewTournament, TournamentStatus, TournamentCredentials, UserRole, User, Round } from "../../entities";
 
 export interface TournamentService {
     createTournament(data: NewTournament): Promise<Tournament>;
@@ -8,4 +8,6 @@ export interface TournamentService {
     updateTournamentById(id: string, updateDAta: Partial<Tournament>): Promise<Tournament>;
     deleteById(id: string): Promise<void>;
     getAllByStatus(status: TournamentStatus): Promise<Tournament[]>;
+    startTournament(tournamentId: string, requesterId: string ): Promise<Tournament>;
+    createSwissRoundOne(registeredPlayersIds: string[], tournamentId: string): Round;
 }

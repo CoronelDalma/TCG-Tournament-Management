@@ -1,4 +1,4 @@
-import { TournamentCredentials } from "../../entities";
+import { MIN_PLAYERS, TournamentCredentials } from "../../entities";
 import { TournamentService, UserService } from "../../services";
 import { UserRole } from "../../entities";
 
@@ -12,8 +12,6 @@ type TournamentManagerRole = Exclude<UserRole, 'player'>;
 function canManageTournament(role: UserRole):role is TournamentManagerRole {
     return role == UserRole.ADMIN || role == UserRole.ORGANIZER;
 }
-
-const MIN_PLAYERS: number = 2;
 
 export async function createTournament({dependencies, payload}: CreateTournamentData) {
     const { tournamentService, userService } = dependencies;

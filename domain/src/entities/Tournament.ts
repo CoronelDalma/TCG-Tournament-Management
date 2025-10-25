@@ -1,4 +1,5 @@
 import type { Entity } from "../utils/types/entity";
+import { Round } from "./Round";
 
 export const TournamentStatus = {
     PENDING: 'pending',
@@ -8,6 +9,8 @@ export const TournamentStatus = {
 } as const;
 
 export type TournamentStatus = (typeof TournamentStatus)[keyof typeof TournamentStatus];
+
+export const MIN_PLAYERS: number = 2;
 
 export interface Tournament extends Entity {
     name: string;
@@ -26,3 +29,7 @@ export type TournamentCredentials = {
     data: NewTournament;
     requesterId: string
 };
+
+export interface TournamentWithRounds extends Tournament {
+    rounds: Round[];
+} 

@@ -18,18 +18,18 @@ describe('DeleteUserUseCase', () => {
     const userService = UserServiceMock;
 
     test('should throw an error if the user to delete is not found', async () => {
-        expect(existingUsers.length).toEqual(3);
+        expect(existingUsers.length).toEqual(4);
 
         const result = deleteUser({
             dependencies: { userService },
             payload: { data: {id: userId}}
         });
         expect(result).rejects.toThrow("User not found");
-        expect(existingUsers.length).toEqual(3);
+        expect(existingUsers.length).toEqual(4);
     });
 
     test('should successfully delete an existing user', async () => {
-        expect(existingUsers.length).toEqual(3);
+        expect(existingUsers.length).toEqual(4);
 
 
         deleteUser({
@@ -37,6 +37,6 @@ describe('DeleteUserUseCase', () => {
             payload: { data: {id: "user-2"}}
         });
 
-        expect(existingUsers.length).toEqual(2);
+        expect(existingUsers.length).toEqual(3);
     });
 });
