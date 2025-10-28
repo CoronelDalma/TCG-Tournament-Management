@@ -92,13 +92,7 @@ export class PrismaTournamentService implements TournamentService {
         return prismaTournaments.map(mapPrismaTournamentToDomain);
     }
 
-    // saveRoundOne(roundData: Round): Promise<Round> {
-    //     console.log("---- service createSwissRoundOne")
-    //     throw new Error("Method not implemented.");
-    // }
-
     async startTournament(tournamentId: string): Promise<Tournament> {
-        console.log("---- service startTournament")
         const updatedTournament = await this.updateTournamentById(tournamentId, {
             status: TournamentStatus.ACTIVE
         });

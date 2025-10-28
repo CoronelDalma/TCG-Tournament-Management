@@ -96,7 +96,7 @@ export async function startTournament({ dependencies, payload}: StartTournamentD
     }
 
     const round1Data = createSwissRoundOne(tournament.registeredPlayersIds, tournamentId);
-    console.log(round1Data);
+    
     const round1 = await roundService.createSwissRoundOne(round1Data);
 
     const startedTournament = await tournamentService.startTournament(tournamentId);

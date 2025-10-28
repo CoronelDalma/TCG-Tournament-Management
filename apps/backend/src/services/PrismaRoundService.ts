@@ -1,7 +1,9 @@
 import { Match, MatchResult, Round, RoundService } from "domain/src";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma, MatchResult as PrismaMatchResult } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
+type MatchCreateInput = Prisma.MatchCreateWithoutRoundRelationInput;
 
 interface PrismaMatchWithRound {
     id: string;
@@ -54,6 +56,26 @@ function mapPrismaRoundToDomain(roundData: PrismaRoundWithMatches): Round {
 }
 
 export class PrismaRoundService implements RoundService {
+    private mapDomainResultToPrismaEnum(domainResult: MatchResult): PrismaMatchResult {
+        // Convertimos a minúsculas y snake_case para hacer match con el schema de Prisma.
+        const resultString = domainResult.toLowerCase().replace(/-/g, '_');
+
+        switch (resultString) {
+            case 'player1_wins':
+                return 'player1_wins';
+            case 'player2_wins':
+                return 'player2_wins';
+            case 'draw':
+                return 'draw';
+            // El valor 'bye' de tu schema de Prisma cubre el caso del bye win
+            case 'bye':
+            case 'bye_win': 
+                return 'bye';
+            case 'pending':
+            default:
+                return 'pending';
+        }
+    }
     async createSwissRoundOne(roundData: Round): Promise<Round> {
         const createRound = await prisma.round.create({
             data: {
@@ -61,14 +83,21 @@ export class PrismaRoundService implements RoundService {
                 roundNumber: roundData.roundNumber,
                 isCompleted: roundData.isCompleted,
                 matches: {
-                    create: roundData.matches.map((match: Match) => ({
-                        //round: match.roundNumber,
-                        tournament: { connect: { id: match.tournamentId } },
-                        player1: { connect: { id: match.player1Id } },
-                        ...(match.player2Id ? { player2: { connect: { id: match.player2Id } } } : {}),
-                        result: match.result as any,
-                        score: match.score,
-                    })),     
+                    create: roundData.matches.map((match: Match) => {
+                        const matchData: MatchCreateInput = {
+                                tournament: { connect: { id: match.tournamentId } },
+                                player1: { connect: { id: match.player1Id } },
+                                // Mapear el resultado al string literal que Prisma espera.
+                                result: this.mapDomainResultToPrismaEnum(match.result), 
+                                score: match.score,
+                            };
+                                                     // Agregar player2 solo si existe (para evitar errores en byes)
+                        if (match.player2Id) {
+                            matchData.player2 = { connect: { id: match.player2Id } };
+                        }
+                            
+                        return matchData;
+                    }),     
                 }
             },
             include: {

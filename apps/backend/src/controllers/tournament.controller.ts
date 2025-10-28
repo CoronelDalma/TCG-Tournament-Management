@@ -72,7 +72,7 @@ export async function registerPlayerController(req: AuthRequest, res: Response) 
                 playerId: playerId
             }
         });
-        console.log(updatedTournament);
+
         res.status(200).json(updatedTournament);
     } catch (error: any) {
         console.error("Error registering player:", error.message);
@@ -99,14 +99,13 @@ export async function getTournamentsController( req: Request, res: Response) {
 
         res.status(200).json(tournaments);
     } catch(error: any) {
-        console.error("Error fetching tournaments:", error.message);
+        //console.error("Error fetching tournaments:", error.message);
         res.status(500).json({ error: "Failed to fetch tournaments due to a server error." });
     }
 }
 
 export async function startTournamentController(req: AuthRequest, res: Response) {
     console.log("-------------- STARTED TOURNAMENT endpoint-------------")
-    console.log(req.userId);
     const playerId = req.userId;
     const tournamentId = req.params.tournamentId;
     if (!playerId) {
@@ -126,14 +125,7 @@ export async function startTournamentController(req: AuthRequest, res: Response)
                 requesterId: playerId
             }
         })
-        // const updatedTournament = await registerPlayerInTournament({
-        //     dependencies: { tournamentService, userService },
-        //     payload: {
-        //         tournamentId: tournamentId,
-        //         playerId: playerId
-        //     }
-        // });
-        console.log(startedTournament);
+
         res.status(200).json(startedTournament);
     } catch (error: any) {
         console.error("Error starting tournament:", error.message);

@@ -367,36 +367,36 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
                 .post(urlStartTournament(startTournamentId))
                 .set('Authorization', `Bearer ${adminToken}`);
 
-        console.log(res.body)
         expect(res.status).toBe(200);
         expect(res.body.status).toBe(TournamentStatus.ACTIVE);
 
         const rounds = res.body.rounds;
-        expect(rounds.length).toBe(3); // Log2(8) = 3 rondas (R1, Semis, Final)
+        expect(rounds.length).toBe(1); 
             
-        // Round 1 (4 matches totales para 8 slots)
-        expect(rounds[0].matches.length).toBe(4); 
-            
-        // Round 2 (2 matches) - Esperando ganadores
-        expect(rounds[1].matches.length).toBe(2);
-            
-        // Round 3 (1 match) - Final
-        expect(rounds[2].matches.length).toBe(1);
-
-        // Verificamos que haya 5 jugadores involucrados en la primera ronda (3 byes, 1 partido real)
-        let actualPlayersInR1 = 0;
-        let byesCount = 0;
-        rounds[0].matches.forEach((m: any) => {
-            if (m.playerAId && m.playerBId) {
-                actualPlayersInR1 += 2;
-            } else if (m.playerAId || m.playerBId) {
-                actualPlayersInR1 += 1;
-                byesCount += 1; // Un bye se cuenta cuando un slot es null
+        // Round 1 (3 matches totales)
+        expect(rounds[0].matches.length).toBe(3); 
+        
+        let byes = 0;
+        let pending = 0;
+        
+        rounds[0].matches.forEach((match: any) => {
+            console.log("Match: ",match);
+            console.log("player 1: ",match.player1Id);
+            console.log("player 2: ",match.player2Id);
+            if (match.result == "pending") {
+                pending += 1;
+                expect(match.player1Id).not.toBeNull();
+                expect(match.player2Id).not.toBeNull();
             }
+            if (match.result == 'bye') {
+                byes += 1;
+                expect(match.player1Id).not.toBeNull();
+                expect(match.player2Id).toBeNull();
+            }
+
         });
-        // Total de jugadores = 5. Como el bracket es de 8, hay 3 byes.
-        expect(actualPlayersInR1).toBe(5); 
-        expect(byesCount).toBe(3); 
+        expect(pending).toBe(2);
+        expect(byes).toBe(1);
     })
 
     test("should allow ADMIN to successfully start a 4-player tournament", async () => {
@@ -425,8 +425,8 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
 
         // 3. Verificamos que todos los matches estén definidos (no esperando ganadores)
         round1.matches.forEach((match: any) => {
-            expect(match.playerAId).not.toBeNull();
-            expect(match.playerBId).not.toBeNull();
+            expect(match.player1Id).not.toBeNull();
+            expect(match.player2Id).not.toBeNull();
 
         });
     })
@@ -457,10 +457,62 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
 
         // 3. Verificamos que todos los matches estén definidos (no esperando ganadores)
         round1.matches.forEach((match: any) => {
-            expect(match.playerAId).not.toBeNull();
-            expect(match.playerBId).not.toBeNull();
+            expect(match.player1Id).not.toBeNull();
+            expect(match.player2Id).not.toBeNull();
+        });
+    })
+
+    test("should allow ORGANIZER to successfully start a 7-player tournament by generating a bracket with byes", async () => {
+        // Register 5 players
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${organizerToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerThreeToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerFourToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${adminToken}`);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerTwoToken}`);
+
+        // extra player
+        const { token: playerExtraToken } = await createAndLogin({ email: 'player_three@test.com', password: 'secure_pwd' }, UserRole.PLAYER);
+        await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerExtraToken}`);
+    
+        // Start tournament
+        const res = await request(app)
+                .post(urlStartTournament(startTournamentId))
+                .set('Authorization', `Bearer ${organizerToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe(TournamentStatus.ACTIVE);
+
+        const rounds = res.body.rounds;
+        expect(rounds.length).toBe(1); 
+            
+        // Round 1 (7 players - 4 matches totales= 3 pendings -1 bye)
+        expect(rounds[0].matches.length).toBe(4); 
+        
+        let byes = 0;
+        let pending = 0;
+        
+        rounds[0].matches.forEach((match: any) => {
+            console.log("Match: ",match);
+            console.log("player 1: ",match.player1Id);
+            console.log("player 2: ",match.player2Id);
+            if (match.result == "pending") {
+                pending += 1;
+                expect(match.player1Id).not.toBeNull();
+                expect(match.player2Id).not.toBeNull();
+            }
+            if (match.result == 'bye') {
+                byes += 1;
+                expect(match.player1Id).not.toBeNull();
+                expect(match.player2Id).toBeNull();
+            }
 
         });
+        expect(pending).toBe(3);
+        expect(byes).toBe(1);
+
+        // Clear extra player 
+        await prisma.user.delete({ where: { email: 'player_three@test.com' } });
     })
 
     test("should reject start if the tournament is started by an ORGANIZER but is not the tournament organizer ", async () => {
