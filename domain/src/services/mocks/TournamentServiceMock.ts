@@ -64,28 +64,7 @@ export const TournamentServiceMock: TournamentService = {
     getAllByStatus: async function (status: TournamentStatus): Promise<Tournament[]> {
         return existingTournaments.filter(tournament => tournament.status === status);
     },
-    startTournament: function (tournamentId: string, requesterId: string): Promise<Tournament> {
-        throw new Error("Function not implemented start tournament------ start.");
+    startTournament: function (tournamentId: string): Promise<Tournament> {
+        return this.updateTournamentById(tournamentId, {status: TournamentStatus.ACTIVE})
     },
-    createSwissRoundOne: function (registeredPlayersIds: string[], tournamentId: string): Round {
-        // Mock de la lógica del Bracket: devolver una Round válida de mock
-        return {
-            id: 'r-1-mock',
-            tournamentId: tournamentId,
-            roundNumber: 1,
-            isCompleted: false,
-            matches: [
-                // Partida simulada
-                {
-                    id: 'm-1-mock',
-                    tournamentId: tournamentId,
-                    roundNumber: 1,
-                    player1Id: registeredPlayersIds[0] || 'p1',
-                    player2Id: registeredPlayersIds[1] || 'p2',
-                    result: 'pending',
-                    score: '',
-                }
-            ]
-        } as Round;
-    }
 }

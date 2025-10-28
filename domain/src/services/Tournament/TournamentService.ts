@@ -8,6 +8,6 @@ export interface TournamentService {
     updateTournamentById(id: string, updateDAta: Partial<Tournament>): Promise<Tournament>;
     deleteById(id: string): Promise<void>;
     getAllByStatus(status: TournamentStatus): Promise<Tournament[]>;
-    startTournament(tournamentId: string, requesterId: string ): Promise<Tournament>;
-    createSwissRoundOne(registeredPlayersIds: string[], tournamentId: string): Round;
+    startTournament(tournamentId: string ): Promise<Tournament>;
+    //saveRoundOne(roundData: Round): Promise<Round>;
 }

@@ -1,12 +1,14 @@
-import { TournamentCredentials, TournamentService, UserService, createTournament, registerPlayerInTournament, getAllTournaments } from "domain/src";
+import { TournamentCredentials, TournamentService, UserService, createTournament, registerPlayerInTournament, getAllTournaments, startTournament, RoundService } from "domain/src";
 import { Request, Response } from "express";
 import { PrismaTournamentService } from "../services/PrismaTournamentService";
 import { PrismaUserService } from "../services/PrismaUserService";
 import { AuthRequest } from "../middlewares/AuthMiddleware"
 import { _ } from "vitest/dist/chunks/reporters.d.BFLkQcL6";
+import { PrismaRoundService } from "../services/PrismaRoundService";
 
 const tournamentService: TournamentService = new PrismaTournamentService();
 const userService: UserService = new PrismaUserService();
+const roundService: RoundService = new PrismaRoundService();
 
 export async function createTournamentController( req: AuthRequest, res: Response) {
     console.log("createTournament endpoint hit");
@@ -103,9 +105,10 @@ export async function getTournamentsController( req: Request, res: Response) {
 }
 
 export async function startTournamentController(req: AuthRequest, res: Response) {
+    console.log("-------------- STARTED TOURNAMENT endpoint-------------")
+    console.log(req.userId);
     const playerId = req.userId;
     const tournamentId = req.params.tournamentId;
-
     if (!playerId) {
         return res.status(401).json({ error: "Authentication required." });
     }
@@ -115,22 +118,34 @@ export async function startTournamentController(req: AuthRequest, res: Response)
     }
 
     try {
-        const updatedTournament = await registerPlayerInTournament({
-            dependencies: { tournamentService, userService },
+
+        const startedTournament = await startTournament({
+            dependencies: { tournamentService, userService, roundService },
             payload: {
                 tournamentId: tournamentId,
-                playerId: playerId
+                requesterId: playerId
             }
-        });
-        console.log(updatedTournament);
-        res.status(200).json(updatedTournament);
+        })
+        // const updatedTournament = await registerPlayerInTournament({
+        //     dependencies: { tournamentService, userService },
+        //     payload: {
+        //         tournamentId: tournamentId,
+        //         playerId: playerId
+        //     }
+        // });
+        console.log(startedTournament);
+        res.status(200).json(startedTournament);
     } catch (error: any) {
-        console.error("Error registering player:", error.message);
+        console.error("Error starting tournament:", error.message);
         
         if (error.message.includes("not found")) {
             return res.status(404).json({ error: error.message });
         }
-        if (error.message.includes("Cannot register") || error.message.includes("already full") || error.message.includes("already registered")) {
+        if (error.message.includes("Permission denied")) {
+            return res.status(403).json({ error: error.message });
+        }
+
+        if (error.message.includes("Tournament must have status")) {
             return res.status(400).json({ error: error.message });
         }
 

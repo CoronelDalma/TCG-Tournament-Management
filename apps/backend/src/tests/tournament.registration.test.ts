@@ -100,6 +100,8 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
 
     beforeAll(async () => {
         await prisma.$connect();
+        await prisma.match.deleteMany({});
+        await prisma.round.deleteMany({});
         await prisma.tournament.deleteMany({});
         const emailsToClean = [
             ADMIN_CREDENTIALS.email, 
@@ -140,10 +142,23 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
             .post(urlTournament)
             .set('Authorization', `Bearer ${organizerToken}`)
             .send(BASE_TOURNAMENT_PAYLOAD(organizerId, 8));
+
         startTournamentId = newTournament.body.id;
     });
 
     beforeEach(async () => {
+        // 1. Limpiar matches y rounds (necesario antes de eliminar el torneo)
+        await prisma.match.deleteMany({ where: { tournamentId: startTournamentId } });
+        await prisma.round.deleteMany({ where: { tournamentId: startTournamentId } });
+        
+        // 2. Eliminar el torneo si existe
+        //await prisma.tournament.deleteMany({ where: { id: startTournamentId } });
+        // Resetear el estado del torneo a PENDING
+        await prisma.tournament.update({ 
+            where: { id: startTournamentId },
+            data: { status: TournamentStatus.PENDING, registeredPlayersIds: { set: [] } } // Opcional: limpiar jugadores
+        });
+
         // [CAMBIO CLAVE]: Envolvemos la creación del torneo en un retry.
         // Esto captura específicamente el error 500 causado por el Admin no encontrado.
         const creationRes = await retryOperation(async () => {
@@ -184,7 +199,9 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
             PLAYER_FOUR_CREDENTIALS.email,
             PLAYER_FIVE_CREDENTIALS.email
         ];
-        //await prisma.tournament.deleteMany({});
+        await prisma.match.deleteMany({});
+        await prisma.round.deleteMany({});
+        await prisma.tournament.deleteMany({});
         await prisma.user.deleteMany({
             where: { email: { in: emailsToClean }}
         });
@@ -334,7 +351,7 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
         const res = await request(app).post(urlStartTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
 
         expect(res.status).toBe(403);
-        expect(res.body.error).toContain("User is not authorized to create tournaments.");
+        expect(res.body.error).toContain("Permission denied. Only the Admin or the Tournament Organizer can start this tournament.");
     })
 
     test("should allow ADMIN to successfully start a 5-player tournament by generating a bracket with byes", async () => {
@@ -350,6 +367,7 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
                 .post(urlStartTournament(startTournamentId))
                 .set('Authorization', `Bearer ${adminToken}`);
 
+        console.log(res.body)
         expect(res.status).toBe(200);
         expect(res.body.status).toBe(TournamentStatus.ACTIVE);
 
@@ -381,7 +399,7 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
         expect(byesCount).toBe(3); 
     })
 
-    test("should allow ADMIN to successfully start a 4-player tournament by generating a bracket with byes", async () => {
+    test("should allow ADMIN to successfully start a 4-player tournament", async () => {
         // Register 4 players
         await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerOneToken}`);
         await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${organizerToken}`);
@@ -397,32 +415,20 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
         expect(res.body.status).toBe(TournamentStatus.ACTIVE);
 
         const rounds = res.body.rounds;
-        expect(rounds.length).toBe(2); 
+        expect(rounds.length).toBe(1); 
             
-        // Round 1 
-        expect(rounds[0].matches.length).toBe(2);
-        expect(rounds[0].matches[0].playerAId).not.toBeNull();
-        expect(rounds[0].matches[0].playerBId).not.toBeNull(); 
-            
-        // Final (Ronda 2)
-        expect(rounds[1].matches.length).toBe(1);
-        expect(rounds[1].matches[0].playerAId).toBeNull(); // Esperando ganadores
-        expect(rounds[1].matches[0].previousMatchAId).not.toBeNull();
+        const round1 = rounds[0];
+        expect(round1.roundNumber).toBe(1);
+        // 2. Verificamos que se hayan creado los emparejamientos completos para 4 jugadores
+        // 4 jugadores deben tener 2 matches (2x2) y CERO byes.
+        expect(round1.matches.length).toBe(2);
 
-        // Verificamos que haya 4 jugadores involucrados en la primera ronda
-        let actualPlayersInR1 = 0;
-        let byesCount = 0;
-        rounds[0].matches.forEach((m: any) => {
-            if (m.playerAId && m.playerBId) {
-                actualPlayersInR1 += 2;
-            } else if (m.playerAId || m.playerBId) {
-                actualPlayersInR1 += 1;
-                byesCount += 1; // Un bye se cuenta cuando un slot es null
-            }
+        // 3. Verificamos que todos los matches estén definidos (no esperando ganadores)
+        round1.matches.forEach((match: any) => {
+            expect(match.playerAId).not.toBeNull();
+            expect(match.playerBId).not.toBeNull();
+
         });
-        // Total de jugadores = 4. Como el bracket es de 8, hay 2 byes.
-        expect(actualPlayersInR1).toBe(4); 
-        expect(byesCount).toBe(2); 
     })
 
     test("should allow ORGANIZER to successfully start a 4-player tournament", async () => {
@@ -438,7 +444,23 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
         
         expect(res.status).toBe(200);
         expect(res.body.status).toBe(TournamentStatus.ACTIVE);
-        expect(res.body.rounds.length).toBe(2);
+        
+        // Sólo la ronda 1
+        const rounds= res.body.rounds;
+        expect(rounds.length).toBe(1); //En Swiss, solo se crea la Ronda 1 al inicio.
+
+        const round1 = rounds[0];
+        expect(round1.roundNumber).toBe(1);
+        // 2. Verificamos que se hayan creado los emparejamientos completos para 4 jugadores
+        // 4 jugadores deben tener 2 matches (2x2) y CERO byes.
+        expect(round1.matches.length).toBe(2);
+
+        // 3. Verificamos que todos los matches estén definidos (no esperando ganadores)
+        round1.matches.forEach((match: any) => {
+            expect(match.playerAId).not.toBeNull();
+            expect(match.playerBId).not.toBeNull();
+
+        });
     })
 
     test("should reject start if the tournament is started by an ORGANIZER but is not the tournament organizer ", async () => {
@@ -463,6 +485,7 @@ describe("Tournament Endpoints (Creation , Registration & Start)", () => {
         await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerThreeToken}`);
         await request(app).post(urlRegisterUserToTournament(startTournamentId)).set('Authorization', `Bearer ${playerFourToken}`);
     
+        
         // Start tournament
         const res = await request(app)
                 .post(urlStartTournament(startTournamentId))

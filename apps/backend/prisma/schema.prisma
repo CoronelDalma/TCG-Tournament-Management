@@ -27,15 +27,26 @@ enum TournamentStatus {
   canceled
 }
 
+enum MatchResult {
+  pending
+  player1_wins
+  player2_wins
+  draw
+  bye
+}
 
+// ------- MODELS --------
 model User {
   id            String @id @default(uuid())
   name          String
   email         String @unique
   passwordHash  String
   role          UserRole  @default(player)
+  
   tournaments   Tournament[]
   organizedTournaments  Tournament[]      @relation("OrganizedTournaments")
+  matchesAsPlayer1      Match[]           @relation("Player1Matches")
+  matchesAsPlayer2      Match[]           @relation("Player2Matches")
 }
 
 model Tournament {
@@ -49,8 +60,42 @@ model Tournament {
   status        TournamentStatus @default(pending)
   registeredPlayersIds    User[]
   format        String
+  
+  rounds        Round[]
+  matches       Match[]
 
   @@index([organizedId])
+}
+
+model Round {
+  id String @id @default(uuid())
+  tournamentId String
+  roundNumber Int
+  isCompleted Boolean @default(false)
+
+  tournament  Tournament @relation(fields: [tournamentId], references: [id])
+  matches     Match[] // Partidas que pertenecen a este ronda
+
+  // restriccion: solo una ronda con el mismo numero por torneo 
+  @@unique([tournamentId, roundNumber])
+}
+
+model Match {
+  id  String  @id @default(uuid())
+  tournamentId String
+  roundId   String //fr 
+  player1Id String
+  player2Id String?
+  result  MatchResult @default(pending)
+  score String @default("0-0-0")
+
+  tournament     Tournament  @relation(fields: [tournamentId], references: [id])
+  roundRelation  Round       @relation(fields: [roundId], references: [id])
+  player1        User        @relation("Player1Matches", fields: [player1Id], references: [id])
+  player2        User?       @relation("Player2Matches", fields: [player2Id], references: [id]) // player2 es opcional para BYE
+
+  @@index([tournamentId])
+  @@index([roundId])
 }
 
 

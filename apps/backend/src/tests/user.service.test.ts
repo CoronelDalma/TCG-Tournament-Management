@@ -25,6 +25,7 @@ describe ("PrismaUserService", () => {
     });
 
     beforeEach(async () => {
+        await prisma.tournament.deleteMany();
         await prisma.user.deleteMany({});
     });
 

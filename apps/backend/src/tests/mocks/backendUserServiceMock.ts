@@ -29,12 +29,6 @@ export const userServiceMock: UserService = {
         }
         return null;
     }),
-    getUserRole: vi.fn(async (id: string) => {
-        if (id === "existing-user-id") {
-            return "player";
-        };
-        return null;
-    }),
     delete: vi.fn(async (id: string) => {
     }),
     update: function (userId: string, updateData: Partial<User>): Promise<User> {

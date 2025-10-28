@@ -4,6 +4,7 @@ import { resetMockData, TournamentServiceMock } from '../../services/mocks/Tourn
 import { UserServiceMock } from '../../services/mocks/UserServiceMock';
 import { existingUsers, resetExistingUsers } from '../../entities/mocks/user-mock';
 import { Tournament, TournamentStatus, UserRole } from '../../entities';
+import { RoundServiceMock } from '../../services/mocks/RoundServiceMock';
 
 
     let ADMIN_ID: string;
@@ -14,6 +15,7 @@ import { Tournament, TournamentStatus, UserRole } from '../../entities';
 describe('start tournament use case', () => {
     const tournamentService = TournamentServiceMock;
     const userService = UserServiceMock;
+    const roundService = RoundServiceMock;
 
     let tournament: Tournament;
 
@@ -42,42 +44,42 @@ describe('start tournament use case', () => {
 
     test('should reject if tournament id not found', async () => {
         await expect(startTournament( {
-            dependencies: { tournamentService, userService},
+            dependencies: { tournamentService, userService, roundService},
             payload: {tournamentId: 'not-found', requesterId: ADMIN_ID}
         })).rejects.toThrow('Tournament with ID not-found not found.');
     })
 
     test('should reject if REQUESTER ID not found', async () => {
         await expect(startTournament( {
-            dependencies: { tournamentService, userService},
+            dependencies: { tournamentService, userService, roundService},
             payload: {tournamentId: tournament.id, requesterId: 'nothing'}
         })).rejects.toThrow('User not found.');
     })
 
     test('should reject if REQUESTER ID not found', async () => {
         await expect(startTournament( {
-            dependencies: { tournamentService, userService},
+            dependencies: { tournamentService, userService, roundService},
             payload: {tournamentId: tournament.id, requesterId: ''}
         })).rejects.toThrow('User not found.');
     })
 
     test('should reject if ORGANIZER ID is not the tournament organizer ', async () => {      
         await expect(startTournament( {
-            dependencies: { tournamentService, userService},
+            dependencies: { tournamentService, userService, roundService},
             payload: {tournamentId: tournament.id, requesterId: ORGANIZER2_ID}
         })).rejects.toThrow('Permission denied. Only the Admin or the Tournament Organizer can start this tournament.');
     })
 
     test('should reject if requester is a player ', async () => {      
         await expect(startTournament( {
-            dependencies: { tournamentService, userService},
+            dependencies: { tournamentService, userService, roundService},
             payload: {tournamentId: tournament.id, requesterId: PLAYER_ID}
         })).rejects.toThrow('Permission denied. Only the Admin or the Tournament Organizer can start this tournament.');
     })
 
     test('should reject if there are less than 2 registered players', async () => {      
         await expect(startTournament( {
-            dependencies: { tournamentService, userService},
+            dependencies: { tournamentService, userService, roundService},
             payload: {tournamentId: tournament.id, requesterId: ORGANIZER_ID}
         })).rejects.toThrow('Cannot start the tournament: at least 2 players are required.');
     })
@@ -89,7 +91,7 @@ describe('start tournament use case', () => {
         });
         
         await expect(startTournament( {
-            dependencies: { tournamentService, userService},
+            dependencies: { tournamentService, userService, roundService},
             payload: {tournamentId: tournament.id, requesterId: ORGANIZER_ID}
         })).rejects.toThrow('Tournament must have status PENDING to be started. Current status: completed');
     })
@@ -101,7 +103,7 @@ describe('start tournament use case', () => {
         });
 
         const res = await startTournament( {
-            dependencies: { tournamentService, userService},
+            dependencies: { tournamentService, userService, roundService},
             payload: {tournamentId: tournament.id, requesterId: ORGANIZER_ID}
         })
 
@@ -115,7 +117,7 @@ describe('start tournament use case', () => {
         });
         
         const res = await startTournament( {
-            dependencies: { tournamentService, userService},
+            dependencies: { tournamentService, userService, roundService},
             payload: {tournamentId: tournament.id, requesterId: ADMIN_ID}
         })
 
