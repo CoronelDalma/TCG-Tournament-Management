@@ -11,15 +11,45 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+      /* ==================== */
+    /* Colores Base (Primarios y Feedback) */
+    /* ==================== */
+  --color-primary: #007bff;          /* Azul: para botones principales, links, y énfasis. */
+  --color-primary-dark: #0056b3;     /* Azul Oscuro: para hover/activo. */
+
+  --color-secondary: #6c757d;        /* Gris: para botones secundarios o texto sutil. */
+  --color-secondary-dark: #5a6268;
+
+  --color-danger: #dc3545;           /* Rojo: para errores y acciones destructivas. */
+  --color-danger-dark: #bd2130;
+
+  --color-success: #28a745;          /* Verde: para mensajes de éxito. */
+  --color-warning: #ffc107;          /* Amarillo: para alertas. */
+
+    /* ==================== */
+    /* Colores de Texto y Fondo */
+    /* ==================== */
+  --color-text-dark: #212529;        /* Texto principal muy oscuro. */
+  --color-text-light: #f8f9fa;       /* Texto claro (sobre fondos oscuros). */
+  --color-background-page: #f8f9fa;  /* Fondo ligero de la página. */
+  --color-background-card: #ffffff;  /* Fondo de contenedores (cards). */
+  --color-border-light: #ced4da;     /* Color sutil para bordes y separadores. */
+
+    /* ==================== */
+    /* Espaciado y Sombra (Opcional) */
+    /* ==================== */
+  --spacing-unit: 8px; /* Unidad base para padding/margin (escalas de 8) */
+  --border-radius: 4px;
 }
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--color-primary);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--color-primary-dark);
 }
 
 body {
@@ -35,7 +65,7 @@ h1 {
   line-height: 1.1;
 }
 
-button {
+/* button {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -52,9 +82,9 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
+} */
 
-@media (prefers-color-scheme: light) {
+/* @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
@@ -65,4 +95,4 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-}
+} */

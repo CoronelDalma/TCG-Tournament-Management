@@ -1,0 +1,43 @@
+.button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    min-width: 150px;
+}
+
+.primary {
+    background-color: var(--color-primary); /* Usando variable */
+    color: var(--color-text-light);
+}
+
+.primary:hover {
+    background-color: var(--color-primary-dark); /* Usando variable */
+}
+
+.secondary {
+    background-color: var(--color-secondary); /* Usando variable */
+    color: var(--color-text-light);
+}
+
+.secondary:hover {
+    background-color: var(--color-secondary-dark); /* Usando variable */
+}
+
+/* 3. Variante Danger */
+.danger {
+    background-color: var(--color-danger); /* Usando variable */
+    color: var(--color-text-light);
+}
+
+.danger:hover {
+    background-color: var(--color-danger-dark); /* Usando variable */
+}
+
+/* Estilos de Estado Deshabilitado y Carga */
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

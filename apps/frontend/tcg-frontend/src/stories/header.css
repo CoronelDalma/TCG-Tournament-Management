@@ -30,3 +30,8 @@
   color: #333;
   font-size: 14px;
 }
+
+.logo {
+  display:flex;
+  align-items: center;
+}
