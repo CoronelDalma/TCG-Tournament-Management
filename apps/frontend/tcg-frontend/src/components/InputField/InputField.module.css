@@ -1,0 +1,51 @@
+/* Estilo del Contenedor */
+.container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--spacing-unit); /* 8px */
+}
+
+/* Estilo de la Etiqueta (Label) */
+.container label {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin-bottom: 4px; /* Mitad de la unidad base */
+}
+
+/* Estilo del Campo de Entrada (Input) */
+.input {
+    padding: 10px 12px;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--border-radius);
+    font-size: 1em;
+    line-height: 1.5;
+    color: var(--color-text-dark);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Estilo de Foco (Focus) */
+.input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Sombra suave con color primario */
+}
+
+/* Estilo de Error (Importante para TDD) */
+.input.error {
+  border-color: var(--color-danger); /* Borde rojo */
+}
+
+/* Estilo de Campo Deshabilitado */
+.input:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+/* Estilo del Mensaje de Error */
+.errorMessage {
+    margin-top: 4px;
+    font-size: 0.8em;
+    color: var(--color-danger);
+    font-weight: 500;
+}
