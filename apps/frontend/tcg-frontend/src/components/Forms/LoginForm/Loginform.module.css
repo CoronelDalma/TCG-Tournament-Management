@@ -1,0 +1,50 @@
+/* Estilo del Contenedor */
+.card {
+    width: 100%;
+    max-width: 400px; 
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background-color: var(--color-background-card);
+    margin: auto; 
+}
+
+.title {
+    color: var(--color-text-dark);
+    margin-top: 0;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; 
+    margin-bottom: 20px;
+}
+
+/* Estilo para errores que no están ligados a un campo específico */
+.generalError {
+    background-color: #f8d7da; /* Rojo muy claro */
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+/* Estilos del pie de página para la navegación a registro */
+.footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid var(--color-border-light);
+}
+
+.text {
+    font-size: 0.9em;
+    color: var(--color-text-dark);
+}

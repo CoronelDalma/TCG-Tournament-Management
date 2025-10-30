@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InputField } from './InputField';
+import { useState, type ChangeEvent } from "react";
 
 const meta: Meta<typeof InputField> = {
     component: InputField,
@@ -14,7 +15,12 @@ const meta: Meta<typeof InputField> = {
         error: { control: 'text'},
         value: { control: 'text'},
         type: { control: 'select', options: ['text', 'email', 'password']},
-    }
+    },
+    // Usamos un decorador para simular el control de estado en React
+    decorators: [(Story, context) => {
+        const [value, setValue] = useState(context?.args?.value || '');
+        return Story({ args: { ...context?.args, value, onChange: (e:ChangeEvent<HTMLInputElement> ) => setValue((e.target as HTMLInputElement).value) } });
+    }],
 }
 export default meta;
 
