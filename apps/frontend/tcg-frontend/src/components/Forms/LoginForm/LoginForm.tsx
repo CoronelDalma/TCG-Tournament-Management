@@ -1,6 +1,6 @@
 import { Button, ButtonVariant } from "../../Button/Button";
 import { InputField, InputFieldType } from "../../InputField/InputField";
-import styles from './Loginform.module.css';
+import styles from '../Form.module.css';
 
 export interface LoginFormProps {
     email: string;
