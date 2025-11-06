@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { LoginForm } from "./LoginForm";
+import { useAuthContext } from "../../../context/Auth/useAuthContext";
 
 export interface LoginFormContainerProps {
-    onSubmit: (email: string, password: string) => Promise<void>;
+    // onSubmit: (email: string, password: string) => Promise<void>;
+    onSubmit: () => void;
     onNavigateToRegister: () => void;
 }
 
 export function LoginFormContainer({onSubmit, onNavigateToRegister}: LoginFormContainerProps) {
+    const { login } = useAuthContext();
+
     const [ email, setEmail ] = useState('');
     const [ password, setPassword ] = useState('');
     const [ isLoading, setIsLoading ] = useState(false);
@@ -24,8 +28,10 @@ export function LoginFormContainer({onSubmit, onNavigateToRegister}: LoginFormCo
         let isValid = true;
         resetErrors();
 
-        if (!email.trim()) {
-            setErrorEmailMessage("Email requerido");
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!email.trim() || !emailRegex.test(email)) {
+            setErrorEmailMessage("Email requerido y válido");
             isValid = false;
         }
         if ( password.length < 6) {
@@ -44,7 +50,8 @@ export function LoginFormContainer({onSubmit, onNavigateToRegister}: LoginFormCo
 
         setIsLoading(true);
         try {
-            await onSubmit(email, password);
+            await login(email, password);
+            onSubmit();
         } catch (error) {
             console.error(error);
             setErrorFormMessage("Credenciales incorrectas ");

@@ -2,6 +2,7 @@ import React from 'react';
 import { InputField } from '../../InputField/InputField';
 import { Button } from '../../Button/Button';
 import styles from '../Form.module.css';
+import { SelectField } from '../../SelectField/SelectField';
 
 export interface RegisterFormProps {
     name: string;
@@ -19,7 +20,8 @@ export interface RegisterFormProps {
     onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onConfirmPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    
+    onRoleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+
     onFormSubmit: (e: React.FormEvent) => void;
     onNavigateToLogin: () => void;
 }
@@ -30,8 +32,14 @@ export function RegisterForm( props: RegisterFormProps) {
         nameError, emailError, passwordError, confirmPasswordError,
         formError, isLoading,
         onNameChange, onEmailChange, onPasswordChange, onConfirmPasswordChange,
-        onFormSubmit, onNavigateToLogin,
+        onFormSubmit, onNavigateToLogin, onRoleChange
     } = props;
+
+    const roleOptions = [
+        { value: 'player', label: 'Jugador / Espectador' },
+        { value: 'organizer', label: 'Organizador de Torneos' },
+        { value: 'admin', label: 'Administrador (Requiere Aprobación)' },
+    ];
 
     return (
         <div className={styles.card}>
@@ -84,6 +92,20 @@ export function RegisterForm( props: RegisterFormProps) {
                     id="register-confirm-password"
                     disabled={isLoading}
                 />
+
+                <select 
+                    className={styles.select}
+                    disabled={isLoading}
+                    onChange={onRoleChange}
+                    >
+                    <option value="player">Jugador</option>
+                    <option value="organizer">Organizador</option> 
+                    <option value="admin">Administrador</option>  
+                    </select>
+                <SelectField                    
+                    disabled={isLoading}
+                    onChange={onRoleChange} label='Role deseado' id='register-role' options={roleOptions}/>
+
 
                 <Button type="submit" isLoading={isLoading} disabled={isLoading}>
                     {isLoading ? 'Registrando...' : 'Registrarse'}

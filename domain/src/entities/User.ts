@@ -4,6 +4,7 @@ export  const UserRole = {
     ADMIN: 'admin',
     ORGANIZER: 'organizer',
     PLAYER: 'player',
+    GUEST: 'guest',
 } as const;
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
@@ -14,6 +15,8 @@ export interface User extends Entity {
     passwordHash: string;
     role: UserRole;
 }
+
+export type UserWithoutHash = Omit<User, 'passwordHash'>;
 
 export type NewUser = Omit<User, 'id'>;
 

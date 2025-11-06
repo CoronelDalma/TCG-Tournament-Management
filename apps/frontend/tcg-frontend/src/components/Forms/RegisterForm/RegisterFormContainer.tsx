@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import { RegisterForm } from './RegisterForm';
+import type { UserRole } from 'domain/src';
+import { useAuthContext } from '../../../context/Auth/useAuthContext';
 
 export interface RegisterFormContainerProps {
-    onSubmit: (name: string, email: string, password: string) => Promise<void>;
+    //onSubmit: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
+    onSubmit: () => void;
     onNavigateToLogin: () => void;
 }
 
 export function RegisterFormContainer({ onSubmit, onNavigateToLogin }: RegisterFormContainerProps) {
+    const { register } = useAuthContext();
+
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [ role, setRole ] = useState<UserRole>('player');
     const [confirmPassword, setConfirmPassword] = useState('');
     
     const [formError, setFormError] = useState('');
@@ -68,7 +74,9 @@ export function RegisterFormContainer({ onSubmit, onNavigateToLogin }: RegisterF
 
         setIsLoading(true);
         try {
-            await onSubmit(name, email, password);
+            //await onSubmit(name, email, password, role);
+            await register(name, email, password, role);
+            onSubmit();
         // Éxito: El componente padre (App) se encargaría de la redirección.
         } catch (error) {
             console.log(error);
@@ -95,7 +103,8 @@ export function RegisterFormContainer({ onSubmit, onNavigateToLogin }: RegisterF
         onEmailChange={(e) => setEmail(e.target.value)}
         onPasswordChange={(e) => setPassword(e.target.value)}
         onConfirmPasswordChange={(e) => setConfirmPassword(e.target.value)}
-        
+        onRoleChange={(e) => setRole(e.target.value as UserRole)}
+
         onFormSubmit={handleSubmit}
         onNavigateToLogin={onNavigateToLogin}
         />

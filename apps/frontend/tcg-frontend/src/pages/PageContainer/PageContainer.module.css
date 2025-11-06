@@ -1,0 +1,49 @@
+.page {
+    min-height: '100vh';
+    display: 'flex';
+    flex-direction: 'column';
+    background-color: var(--color-background-page);
+}
+
+.container {
+    max-width: '1280px';
+    margin: '0 auto';
+    padding: '0 1rem';
+    width: '100%';
+}
+
+.mainContent { 
+    flex-grow: 1;
+    padding: '2rem 1rem';
+}
+
+.headerPage {
+    background-color: 'white';
+    padding: '2rem';
+    border-radius: '0.5rem';
+    box-shadow: '0 10px 15px -3px rgba(0,0,0,0.1)';
+    margin-bottom: '2.5rem';
+}
+
+.titlePage {
+    font-size: '2.25rem';
+    font-weight: '700';
+    margin-bottom: '0.5rem';
+    color: '#1f2937';
+}
+
+.subtitlePage {
+    font-size: '1.125rem';
+    color: '#4b5563';
+    margin-bottom: '1.5rem';
+}
+
+.roleBadge {
+    display: 'inline-block';
+    background-color: '#e0f2fe';
+    color: '#0369a1';
+    padding: '0.25rem 0.75rem';
+    border-radius: '9999px';
+    font-size: '0.875rem';
+    font-weight: '500';
+}
