@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuthContext } from "../../context/Auth/useAuthContext";
-import { useNavigate } from "storybook/internal/router";
+import { useNavigate } from "react-router-dom";
 import { LoginFormContainer } from "../../components/Forms/LoginForm/LoginFormContainer";
 import { RegisterFormContainer } from "../../components/Forms/RegisterForm/RegisterFormContainer";
 import styles from './AuthPage.module.css';
@@ -27,12 +27,17 @@ export const AuthPage = () => {
     const { isLoggedIn } = useAuthContext();
     const navigate = useNavigate(); // historybook's navigate
 
+    useEffect(() => {
+        if (isLoggedIn) {
+            navigate('/'); // Redirect to home on successful auth
+        }
+    }, [isLoggedIn,navigate]);
+
     const handleAuthSuccess = useCallback(() => {
-        navigate('/'); // Redirect to home on successful auth
+        navigate('/'); 
     }, [navigate]);
 
     if (isLoggedIn) {
-        navigate('/'); // Redirect to home if already logged in
         return null;
     }
 

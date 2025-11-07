@@ -37,24 +37,24 @@ export function Nav({ onNavigate }: NavProps) {
     });
     return (
         <nav className={styles.nav}>
-            <button onClick={() => onNavigate(NavLinks.activos)}>Activos</button>
+            {/* <button onClick={() => onNavigate(NavLinks.activos)}>Activos</button>
             <button onClick={() => onNavigate(NavLinks.pendientes)}>Pendientes</button>
             {isAdminOrOrganizer && (
                 <button onClick={() => onNavigate(NavLinks.gestion)}>Gestión</button>
-            )}
+            )} */}
 
             <Button 
                 style={getLinkStyle('activos')}
                 onMouseEnter={() => setHoveredLink('activos')}
                 onMouseLeave={() => setHoveredLink('')}
-                onClick={() => onNavigate('/torneos/activos')}>
+                onClick={() => onNavigate(NavLinks.activos)}>
                 Activos
             </Button>
             <Button 
                 style={getLinkStyle('pendientes')}
                 onMouseEnter={() => setHoveredLink('pendientes')}
                 onMouseLeave={() => setHoveredLink('')}
-                onClick={() => onNavigate('/torneos/pendientes')}>
+                onClick={() => onNavigate(NavLinks.pendientes)}>
                 Pendientes
             </Button>
 
@@ -64,7 +64,7 @@ export function Nav({ onNavigate }: NavProps) {
                     style={getLinkStyle('gestion', true)}
                     onMouseEnter={() => setHoveredLink('gestion')}
                     onMouseLeave={() => setHoveredLink('')}
-                    onClick={() => onNavigate('/torneos/gestion')}>
+                    onClick={() => onNavigate(NavLinks.gestion)}>
                     Gestión
                 </Button>
             )}

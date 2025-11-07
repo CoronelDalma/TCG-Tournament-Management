@@ -1,7 +1,7 @@
 import { useAuthContext } from "../../context/Auth/useAuthContext"
 import { PageContainer } from "../PageContainer/PageContainer"
 
-export const TournamenManagementPage = () => {
+export const TournamentManagementPage = () => {
     const { role } = useAuthContext();
     const canManagement = role === 'admin' || role === 'organizer';
     if (!canManagement) {

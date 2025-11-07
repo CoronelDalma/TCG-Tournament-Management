@@ -1,13 +1,13 @@
 footer { 
-    background-color: '#1f2937';
-    color: 'white';
-    margin-top: 'auto';
+    background-color: #1f2937;
+    color: white;
+    margin-top: auto;
 }
 
 .footerInner { 
-    padding: '1.5rem 0'; 
-    display: 'flex'; 
-    flex-direction: 'column'; 
-    align-items: 'center'; 
-    font-size: '0.875rem';
+    padding: 1.5rem 0; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    font-size: 0.875rem;
 }

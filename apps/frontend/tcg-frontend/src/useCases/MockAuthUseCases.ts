@@ -3,7 +3,7 @@ import type { IAuthUseCases, UserData } from "../domain/AuthUseCasesContract";
 import { ApiError, AuthHttpGateway } from "../infra/AuthHttpGatewat";
 
 
-export const AuthUseCases: IAuthUseCases = {
+export const MockAuthUseCases: IAuthUseCases = {
     async executeLogin(email: string, password: string): Promise<UserData> {
         try {
             const data = await AuthHttpGateway.login(email, password);
