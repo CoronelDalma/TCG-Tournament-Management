@@ -44,7 +44,7 @@ export async function loginController(req: Request, res: Response) {
 
         const token = await authService.generateToken(user.id, user.role);
         console.log(token);
-        res.status(200).json({ token });
+        res.status(200).json({ token, user });
     } catch (error: any) {
         res.status(401).json({ error: error.message})
     }

@@ -1,6 +1,5 @@
-import type { IAuthUseCases } from '../domain/AuthUseCasesContract';
+import type { IAuthUseCases } from '../domain/Auth.types';
 import { MockAuthUseCases } from '../useCases/MockAuthUseCases';
-// import { RealAuthUseCases } from '../useCases/RealAuthUseCases'; // Se usará después
 
 const CURRENT_AUTH_USE_CASES: IAuthUseCases = MockAuthUseCases; 
 

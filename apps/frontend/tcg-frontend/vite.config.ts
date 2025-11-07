@@ -35,4 +35,24 @@ export default defineConfig({
   //     }
   //   }]
   // }
+    // --- Configuración clave para el proxy ---
+  server: {
+    // Al detectarse un prefijo "/api" en una solicitud XHR, 
+    // Vite la reenviará al puerto 3000.
+    proxy: {
+      // Proxy para todas las solicitudes que empiezan con '/api'
+      // Esto incluye tu ruta: '/api/auth/register'
+      '/api': {
+        // El objetivo es tu servidor de backend
+        target: 'http://localhost:3000',
+        
+        // Esto es necesario si el backend es un servidor independiente.
+        changeOrigin: true,
+
+        // Opcional: para reescribir la URL si es necesario, 
+        // pero en este caso es 1:1, por lo que lo dejamos vacío.
+        // rewrite: (path) => path.replace(/^\/api/, ''), 
+      },
+    },
+  },
 });

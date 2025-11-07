@@ -2,15 +2,63 @@ import { UserRole, type UserWithoutHash } from "domain/src";
 
 export class ApiError extends Error {
     status: number;
-    constructor(message: string, status: number) {
+    responseBody: unknown;
+    constructor(message: string, status: number, responseBody: unknown = null) {
         super(message);
         this.name = 'ApiError';
         this.status = status;
+        this.responseBody = responseBody;
     }
 }
 
 // Tipo de error genérico para el bloque catch
 export type UnknownError = Error | { message?: string };
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+// helper
+const apiRequest = async <T = unknown>(url: string, method: HttpMethod, data: unknown = null ): Promise<T> => {
+    console.log(`API Request - URL: ${url}, Method: ${method}, Data:`, data);
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+    };
+
+    const token = localStorage.getItem('authToken');
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const config: RequestInit = {
+        method,
+        headers,
+    };
+    if (data) {
+        config.body = JSON.stringify(data);
+    }
+
+    try {
+        const response = await fetch(url, config);
+        let responseData: unknown = {};
+        const contentType = response.headers.get('Content-Type');
+        if (contentType && contentType.includes('application/json')) {
+            responseData = await response.json();
+        } else {
+            responseData = await response.text();
+        }
+
+        if (!response.ok) {
+            const errorMessage = (responseData as UnknownError).message || `Error del servidor: ${response.statusText}`;
+            throw new ApiError(errorMessage, response.status, responseData);
+        }
+
+        return responseData as T;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        } else {
+            throw new Error('Error de red o inesperado');
+        }
+    }
+}
 
 export const mockApiCall = async (endpoint: string, data: Partial<UserWithoutHash> & { password?: string }) => {
     // Simula latencia de red
@@ -48,9 +96,18 @@ export const mockApiCall = async (endpoint: string, data: Partial<UserWithoutHas
 
 export const AuthHttpGateway = {
     async login(email: string, password: string) {
-        return mockApiCall('login', { email, password });
+        //return mockApiCall('login', { email, password });
+        const data = await apiRequest<{ token?: string; user?: UserWithoutHash }>('/api/auth/login', 'POST', { email, password });
+        // data contiene token. necesito el user también
+        if (data?.token) {
+            localStorage.setItem('authToken', data.token);
+        }
+        
+        console.log('Login response data AuthHttpGetawat:', data);
+        return {token:data.token, user:data.user};
     },
     async register(name: string, email: string, password: string, role: UserRole) {
-        return mockApiCall('register', { name, email, password, role });
+        //return mockApiCall('register', { name, email, password, role });
+        await apiRequest('/api/auth/register', 'POST', { name, email, password, role });
     }
 };

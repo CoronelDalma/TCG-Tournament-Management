@@ -11,7 +11,7 @@ function App() {
     <>
       <BrowserRouter>
         <AuthProvider>
-          <div className=''>
+          <div className='app'>
             <Header />
             <AppRoutes />
             <Footer />

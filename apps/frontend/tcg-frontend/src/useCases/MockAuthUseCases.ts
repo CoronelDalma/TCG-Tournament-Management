@@ -1,13 +1,13 @@
-import type { UserRole } from "domain/src";
-import type { IAuthUseCases, UserData } from "../domain/AuthUseCasesContract";
+import type { UserRole, UserWithoutHash } from "domain/src";
+import type { IAuthUseCases } from "../domain/Auth.types";
 import { ApiError, AuthHttpGateway } from "../infra/AuthHttpGatewat";
 
 
 export const MockAuthUseCases: IAuthUseCases = {
-    async executeLogin(email: string, password: string): Promise<UserData> {
+    async login(email: string, password: string): Promise<{ user: UserWithoutHash, token: string }> {
         try {
             const data = await AuthHttpGateway.login(email, password);
-
+            console.log('AuthUseCases login data:', data);
             // Ensure the gateway returned both user and token so we satisfy UserData (non-optional)
             if (!data || !data.user || !data.token) {
                 throw new Error("Respuesta inválida del servidor al iniciar sesión.");
@@ -18,7 +18,7 @@ export const MockAuthUseCases: IAuthUseCases = {
                 throw new Error("Respuesta inválida del servidor: el usuario no tiene email.");
             }
 
-            localStorage.setItem('jwt_token', data.token);
+            localStorage.setItem('authToken', data.token);
 
             const user = {
                 id: data.user.id,
@@ -43,7 +43,7 @@ export const MockAuthUseCases: IAuthUseCases = {
         }
     },
 
-    async executeRegister(name: string, email: string, password: string, role: UserRole) {
+    async register(name: string, email: string, password: string, role: UserRole) {
         try {
             await AuthHttpGateway.register(name, email, password, role);
         } catch (error: unknown) {

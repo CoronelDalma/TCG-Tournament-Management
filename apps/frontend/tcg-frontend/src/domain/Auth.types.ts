@@ -1,4 +1,4 @@
-import type { User, UserRole } from "domain/src";
+import type { User, UserRole, UserWithoutHash } from "domain/src";
 
 export interface AuthContextType {
     user: User | null;
@@ -12,6 +12,6 @@ export interface AuthContextType {
 }
 
 export interface IAuthUseCases {
-    login: (email: string, password: string) => Promise<{ user: User, token: string }>;
+    login: (email: string, password: string) => Promise<{ user: UserWithoutHash, token: string }>;
     register: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
 }

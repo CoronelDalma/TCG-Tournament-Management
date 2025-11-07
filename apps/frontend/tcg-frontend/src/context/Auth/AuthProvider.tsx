@@ -21,7 +21,7 @@ export function AuthProvider ({children}: {children: React.ReactNode}) {
         // }
 
         // Simulación de carga inicial
-        const storedToken = localStorage.getItem('jwt_token');
+        const storedToken = localStorage.getItem('auhtToken');
         if (storedToken) {
             // En un app real, decodificamos el token para obtener el user/role
             // Aquí simulamos un login exitoso y seteamos un usuario mock basado en el token
@@ -41,7 +41,7 @@ export function AuthProvider ({children}: {children: React.ReactNode}) {
     const login = useCallback(async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            const { user: loggedInUser, token: authToken } = await AuthUseCases.executeLogin(email, password);
+            const { user: loggedInUser, token: authToken } = await AuthUseCases.login(email, password);
             //add passwordHash to user to satisfy User type
             setUser({...loggedInUser, passwordHash: ''});
             setToken(authToken);
@@ -53,7 +53,7 @@ export function AuthProvider ({children}: {children: React.ReactNode}) {
     const register = useCallback(async (name: string, email: string, password: string, role: UserRole) => {
         setIsLoading(true);
         try {
-            await AuthUseCases.executeRegister(name, email, password, role);
+            await AuthUseCases.register(name, email, password, role);
         } finally {
             setIsLoading(false);
         }
